@@ -285,49 +285,6 @@ $ sudo lxc-destroy -n ubuntu-03 -f
 
 
 <p>Через некоторое время вы получите копию родительского&nbsp;контейнера.</p>
-<p>Moving containers between hosts
-We’re using simple tar.bz2 archive to share container data between servers and people:
-$ sudo tar -cjf container.tar.bz2 /var/lib/lxc/<container-name>
-$ # put archive to s3 or scp to somewhere
-$ # and once you need to roll it to server - just unarchive
-$ cd / &amp;&amp; tar -xjf&nbsp;container.tar.bz2</p>
-<p>Of course container must be stopped before that operation in proper way (i.e. services must be shutdowned correctly, otherwise you risk get corrupted data). Think of this that like you doing full <span class="caps">OS</span> backup for moving to a another hard drive. Of course you may have to clone it after unpacking or modify container’s config file, if <span class="caps">LXC</span> paths are different.
-Container configuration
-Each container have configuration file stored in /var/lib/lxc/<container-name>/config. <span class="caps">LXC</span> configuration is split in two parts: container and system configuration. Most important settings&nbsp;are:</p>
-<p>lxc.rootfs - specify the root file system path for the container
-lxc.mount - specify a file location in fstab format, containing the mount information
-lxc.utsname - specify the hostname of the container
-lxc.arch - specify the arch for the container
-lxc.network.* - specify various network related options for the&nbsp;container</p>
-<p>Other options have reasonable default values setted by developers. You can find them by search lxc.include directive in the container config file.
-Container autostarting
-If you want have to start your container at boot time, just put these lines into the container&nbsp;config:</p>
-<h1>the container should be auto-started (0 mean&nbsp;off)</h1>
-<p>lxc.start.auto =&nbsp;1</p>
-<h1>how long to wait in seconds before starting the next&nbsp;one</h1>
-<p>lxc.start.delay =&nbsp;5</p>
-<h1>an integer used to sort containers when&nbsp;auto-started</h1>
-<h1>a serie of containers at&nbsp;once</h1>
-<p>lxc.start.order = 100
-Sharing data between host system and a container
-You can bind any directory inside containers. This allows to you share data between your host and containers. For example, you created folder for storing Redis database files outside your&nbsp;container:</p>
-<p>$ sudo mkdir -p&nbsp;/opt/containers/redis-01</p>
-<h1>bind /opt/containers/redis-01 to&nbsp;/var/lib/lxc/redis-01/rootfs/var/lib/redis</h1>
-<p>$ echo &#8220;/opt/containers/redis-01\t/var/lib/lxc/redis-01/rootfs/var/lib/redis\tnone\tbind\t0\t0&#8221; | sudo tee &#8212;append /var/lib/lxc/redis-01/fstab &gt; /dev/null
-$ # start container and you will find that the redis server database will be stored inside /opt/containers/redis-01&nbsp;directory</p>
-<p>In that way you can share one directory between two or more containers. Just have in mind: better to make read-only bind in this case (just add ro to mount options). You really don’t want to have situation when multiple processes write to a one file at same&nbsp;time.</p>
-<p>What if you want to share data between containers running on different hosts you may use any distributed network file systems like <span class="caps">NFS</span> or other available.
-Few words, if you want to use Iptables inside a container
-If you tried to install iptables package inside the container, probably that will be ended with errors and that&nbsp;why:</p>
-<p>kernel module ip6table_filter is not inserted into running kernel
-/lib/modules in the container is&nbsp;empty</p>
-<p>To solve this problems just run on&nbsp;host:</p>
-<h1>bind host’s /lib/modules path to the&nbsp;container</h1>
-<p>$ echo &#8220;/lib/modules\t/var/lib/lxc/<container-name>/lib/modules\tnone\tbind\t0\t0&#8221; | sudo tee &#8212;append /var/lib/lxc/<container-name>/fstab &gt;&nbsp;/dev/null</p>
-<h1>insert the kernel&nbsp;module</h1>
-<p>$ sudo modprobe&nbsp;ip6table_filter</p>
-<h1>and adds it to load on&nbsp;boot</h1>
-<p>$ echo &#8216;ip6table_filter&#8217; | sudo tee &#8212;append /etc/modules &gt;&nbsp;/dev/null</p>
 <h1>Что&nbsp;дальше?</h1>
 <p>В этом посте я не написал о следующих интересных вещах в <em><span class="caps">LXC</span></em> (хорошие темы для будующих постов про <em><span class="caps">LXC</span></em>, некоторые технологии мы уже используем в <a href="http://conjur.net">Conjur</a>):</p>
 <ul>

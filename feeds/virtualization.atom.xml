@@ -252,49 +252,6 @@ $ sudo lxc-destroy -n ubuntu-03 -f
 
 
 &lt;p&gt;Через некоторое время вы получите копию родительского&amp;nbsp;контейнера.&lt;/p&gt;
-&lt;p&gt;Moving containers between hosts
-We’re using simple tar.bz2 archive to share container data between servers and people:
-$ sudo tar -cjf container.tar.bz2 /var/lib/lxc/&lt;container-name&gt;
-$ # put archive to s3 or scp to somewhere
-$ # and once you need to roll it to server - just unarchive
-$ cd / &amp;amp;&amp;amp; tar -xjf&amp;nbsp;container.tar.bz2&lt;/p&gt;
-&lt;p&gt;Of course container must be stopped before that operation in proper way (i.e. services must be shutdowned correctly, otherwise you risk get corrupted data). Think of this that like you doing full &lt;span class="caps"&gt;OS&lt;/span&gt; backup for moving to a another hard drive. Of course you may have to clone it after unpacking or modify container’s config file, if &lt;span class="caps"&gt;LXC&lt;/span&gt; paths are different.
-Container configuration
-Each container have configuration file stored in /var/lib/lxc/&lt;container-name&gt;/config. &lt;span class="caps"&gt;LXC&lt;/span&gt; configuration is split in two parts: container and system configuration. Most important settings&amp;nbsp;are:&lt;/p&gt;
-&lt;p&gt;lxc.rootfs - specify the root file system path for the container
-lxc.mount - specify a file location in fstab format, containing the mount information
-lxc.utsname - specify the hostname of the container
-lxc.arch - specify the arch for the container
-lxc.network.* - specify various network related options for the&amp;nbsp;container&lt;/p&gt;
-&lt;p&gt;Other options have reasonable default values setted by developers. You can find them by search lxc.include directive in the container config file.
-Container autostarting
-If you want have to start your container at boot time, just put these lines into the container&amp;nbsp;config:&lt;/p&gt;
-&lt;h1&gt;the container should be auto-started (0 mean&amp;nbsp;off)&lt;/h1&gt;
-&lt;p&gt;lxc.start.auto =&amp;nbsp;1&lt;/p&gt;
-&lt;h1&gt;how long to wait in seconds before starting the next&amp;nbsp;one&lt;/h1&gt;
-&lt;p&gt;lxc.start.delay =&amp;nbsp;5&lt;/p&gt;
-&lt;h1&gt;an integer used to sort containers when&amp;nbsp;auto-started&lt;/h1&gt;
-&lt;h1&gt;a serie of containers at&amp;nbsp;once&lt;/h1&gt;
-&lt;p&gt;lxc.start.order = 100
-Sharing data between host system and a container
-You can bind any directory inside containers. This allows to you share data between your host and containers. For example, you created folder for storing Redis database files outside your&amp;nbsp;container:&lt;/p&gt;
-&lt;p&gt;$ sudo mkdir -p&amp;nbsp;/opt/containers/redis-01&lt;/p&gt;
-&lt;h1&gt;bind /opt/containers/redis-01 to&amp;nbsp;/var/lib/lxc/redis-01/rootfs/var/lib/redis&lt;/h1&gt;
-&lt;p&gt;$ echo &amp;#8220;/opt/containers/redis-01\t/var/lib/lxc/redis-01/rootfs/var/lib/redis\tnone\tbind\t0\t0&amp;#8221; | sudo tee &amp;#8212;append /var/lib/lxc/redis-01/fstab &amp;gt; /dev/null
-$ # start container and you will find that the redis server database will be stored inside /opt/containers/redis-01&amp;nbsp;directory&lt;/p&gt;
-&lt;p&gt;In that way you can share one directory between two or more containers. Just have in mind: better to make read-only bind in this case (just add ro to mount options). You really don’t want to have situation when multiple processes write to a one file at same&amp;nbsp;time.&lt;/p&gt;
-&lt;p&gt;What if you want to share data between containers running on different hosts you may use any distributed network file systems like &lt;span class="caps"&gt;NFS&lt;/span&gt; or other available.
-Few words, if you want to use Iptables inside a container
-If you tried to install iptables package inside the container, probably that will be ended with errors and that&amp;nbsp;why:&lt;/p&gt;
-&lt;p&gt;kernel module ip6table_filter is not inserted into running kernel
-/lib/modules in the container is&amp;nbsp;empty&lt;/p&gt;
-&lt;p&gt;To solve this problems just run on&amp;nbsp;host:&lt;/p&gt;
-&lt;h1&gt;bind host’s /lib/modules path to the&amp;nbsp;container&lt;/h1&gt;
-&lt;p&gt;$ echo &amp;#8220;/lib/modules\t/var/lib/lxc/&lt;container-name&gt;/lib/modules\tnone\tbind\t0\t0&amp;#8221; | sudo tee &amp;#8212;append /var/lib/lxc/&lt;container-name&gt;/fstab &amp;gt;&amp;nbsp;/dev/null&lt;/p&gt;
-&lt;h1&gt;insert the kernel&amp;nbsp;module&lt;/h1&gt;
-&lt;p&gt;$ sudo modprobe&amp;nbsp;ip6table_filter&lt;/p&gt;
-&lt;h1&gt;and adds it to load on&amp;nbsp;boot&lt;/h1&gt;
-&lt;p&gt;$ echo &amp;#8216;ip6table_filter&amp;#8217; | sudo tee &amp;#8212;append /etc/modules &amp;gt;&amp;nbsp;/dev/null&lt;/p&gt;
 &lt;h1&gt;Что&amp;nbsp;дальше?&lt;/h1&gt;
 &lt;p&gt;В этом посте я не написал о следующих интересных вещах в &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; (хорошие темы для будующих постов про &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, некоторые технологии мы уже используем в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;):&lt;/p&gt;
 &lt;ul&gt;
