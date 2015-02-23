@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Asakura's drawers table</title><link href="http://asakura.github.io/" rel="alternate"></link><link href="http://asakura.github.io/feeds/virtualization.atom.xml" rel="self"></link><id>http://asakura.github.io/</id><updated>2015-02-23T10:20:00+01:00</updated><entry><title>Getting started with LXC</title><link href="http://asakura.github.io/getting-started-with-lxc.html" rel="alternate"></link><updated>2015-02-23T10:20:00+01:00</updated><author><name>Mikalai Sevastsyanau</name></author><id>tag:asakura.github.io,2015-02-23:getting-started-with-lxc.html</id><summary type="html">&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; &amp;#8212; это набор инструментов, позволяющий посредством &lt;em&gt;&lt;span class="caps"&gt;API&lt;/span&gt;&lt;/em&gt; использовать возможности ядра &lt;em&gt;Linux&lt;/em&gt; по организации &lt;em&gt;системы виртуализации&lt;/em&gt; на уровне операционной системы для запуска нескольких изолированных &lt;em&gt;экземпляров Linux&lt;/em&gt; (&lt;em&gt;контейнеров&lt;/em&gt;) на одном компьютере и управлению&amp;nbsp;ими.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не использует никакую систему виртуализации на подобие &lt;em&gt;&lt;span class="caps"&gt;XEN&lt;/span&gt;&lt;/em&gt; или &lt;em&gt;&lt;span class="caps"&gt;KVM&lt;/span&gt;&lt;/em&gt;, поэтому все экземпляры контейнеров используют &lt;em&gt;одно ядро ОС&lt;/em&gt;, но при этом процессы, запущенные в одном из контейнеров, &lt;em&gt;остаются полностью изолированными&lt;/em&gt; от процессов, запущенных в другом&amp;nbsp;контейнере.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не диктует &amp;#8220;единственный правильный способ&amp;#8221; использования контейнерной виртуализации, а раскрывает и позволяет управлять технологиями, на основе которых он построен (ко многим предоставляя удобный интерфейс&amp;nbsp;управления):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="https://www.kernel.org/doc/Documentation/cgroups/cgroups.txt"&gt;cgroups&lt;/a&gt;&lt;/strong&gt; обеспечивают для групп процессов ограничение и изоляцию физических ресурсов, таких как &lt;em&gt;&lt;span class="caps"&gt;CPU&lt;/span&gt;&lt;/em&gt;, &lt;em&gt;memory&lt;/em&gt;, &lt;em&gt;disk I/O&lt;/em&gt;, &lt;em&gt;network&lt;/em&gt;. &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; создает &lt;em&gt;cgroup&lt;/em&gt; (&lt;em&gt;control group&lt;/em&gt; &amp;#8212; &lt;em&gt;группу управления&lt;/em&gt;) для каждого запущенного контейнера, т.е. вы можете гибко управлять каждым контейнером независимо от&amp;nbsp;другого.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;namespaces&lt;/strong&gt;&lt;sup id="fnref:namespaces"&gt;&lt;a class="footnote-ref" href="#fn:namespaces" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; обеспечивают &lt;em&gt;изоляцию пространств имен ядра&lt;/em&gt; (&lt;em&gt;ipc&lt;/em&gt;, &lt;em&gt;uts&lt;/em&gt;, &lt;em&gt;mount&lt;/em&gt;, &lt;em&gt;pid&lt;/em&gt;, &lt;em&gt;network&lt;/em&gt;, &lt;em&gt;user&lt;/em&gt;), говоря простым языком контенеры не могу воздействовать друг на друга. С пользовательской точки зрения, это выглядит так, что &lt;em&gt;init процес&lt;/em&gt; каждого контейнера имеет &lt;em&gt;&lt;span class="caps"&gt;PID&lt;/span&gt; 1&lt;/em&gt;, а программа &lt;code&gt;ifconfig&lt;/code&gt; показывает только сетевые интерфейсы, которые принадлежат этому контейнеру, где была запущена.
+capabilities обеспечивают контроль над тем, какие привилегированные операции может выполнять&amp;nbsp;процесс.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="http://wiki.apparmor.net/index.php/Main_Page"&gt;Apparmor&lt;/a&gt;&lt;/strong&gt; и &lt;strong&gt;&lt;a href="http://selinuxproject.org/page/Main_Page"&gt;SELinux&lt;/a&gt;&lt;/strong&gt; расширяют традиционную &lt;em&gt;Unix discretionary access control&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;DAC&lt;/span&gt;&lt;/em&gt;) модель моделью &lt;em&gt;mandatory access control&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;MAC&lt;/span&gt;&lt;/em&gt;), главным образом используются для защиты вашей хост системы от того, что вы запускаете в контейнерах. Например, используется для того, что бы определить, какие устройства будут доступны внутри контейнера или какие фичи ядра будут доступны для&amp;nbsp;использования.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;seccomp&lt;/strong&gt;&lt;sup id="fnref:seccomp"&gt;&lt;a class="footnote-ref" href="#fn:seccomp" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt; предоставляет механизм песочницы для приложений, а именно позволяет процессу сделать переход в “безопасный” режим, когда разрешены только системные вызовы на чтение и запись к уже открытым файлам. В последних версиях ядра так же позволяет выбрать какие еще системные вызовы будут доступны для&amp;nbsp;вызова.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt; и&amp;nbsp;что?&lt;/h1&gt;
+&lt;p&gt;Возможно вы уже знакомы с &lt;em&gt;Docker&lt;/em&gt; и вам интересно зачем вам &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; если у вас уже работает &lt;em&gt;Docker&lt;/em&gt;? Тут есть пара принципиальных нюансов, которые на самом деле всё&amp;nbsp;меняют.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Docker&lt;/em&gt; решение для запуска контейнеров с одним запущенным приложением (процессом). Docker не выступает в качестве легковесной виртуальной машины и не может считаться таким, так как его контейнеры умышленно ограничены одним&amp;nbsp;процессом.&lt;/p&gt;
+&lt;p&gt;С другой стороны контейнеры &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не имеют таких ограничений и выступают в роли виртуальной машины: вы можете установить вашу собственную операционную систему, залогинится, установить приложения и сервисы и это все будет работать так, как вы этого и ожидаете. Контейнеры имеют настоящий &lt;em&gt;init процесс&lt;/em&gt;, запущенные сервисы и системные&amp;nbsp;демоны.&lt;/p&gt;
+&lt;h1&gt;Установка&lt;/h1&gt;
+&lt;p&gt;В современных дистрибутивах, таких как &lt;em&gt;Ubuntu Trusty&lt;/em&gt; (14.04), &lt;em&gt;Utopic&lt;/em&gt; (14.10) или новее, &lt;em&gt;Debian Jessie&lt;/em&gt;, поставляется стабильная 1.х версия &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;. Можно ставить прямо из репозитория и начинать использовать. Отдельно стоит упомянуть пользователей &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;: &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, как и &lt;em&gt;Docker&lt;/em&gt;, не поддерживает и не будет поддерживать эту операционную систему, так как для своей работы использует технологии, реализованные только в &lt;em&gt;ядре Linux&lt;/em&gt;. Поэтому вам придется использовать одну из полновесных виртуальных машин для запуска одного из современных дистрибутивов. Возможно, что некоторые пользователи &lt;em&gt;Linux&lt;/em&gt; захотят использовать подход, рекомендованный пользователям &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Контейнеры собираются &lt;em&gt;шаблонами&lt;/em&gt;, которые на самом деле просто программы. Если программа использует дополнительное программое обеспечение, то вам придется установить его или иначе шаблон не будет работать. Например, вам могут понадобится эти программы для работы большинства&amp;nbsp;шаблонов:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Bridge utils&lt;/strong&gt; (а именно утилита &lt;em&gt;brctl&lt;/em&gt;) для управления &lt;em&gt;Linux bridges&lt;/em&gt;&lt;sup id="fnref:bridges"&gt;&lt;a class="footnote-ref" href="#fn:bridges" rel="footnote"&gt;4&lt;/a&gt;&lt;/sup&gt;;&lt;/li&gt;
+&lt;li&gt;Программа &lt;strong&gt;Debootstrap&lt;/strong&gt; для установки системы основанной на &lt;em&gt;Debian&lt;/em&gt; из уже работающей ОС, понадобится, если вы решите использовать шаблон для создания контейнера с &lt;em&gt;Ubuntu&lt;/em&gt; или &lt;em&gt;Debian&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Программа управления пакетами &lt;strong&gt;&lt;span class="caps"&gt;RPM&lt;/span&gt;&lt;/strong&gt; будет нужна, если вы захотите создать контейнер c дистрибутивом &lt;em&gt;&lt;span class="caps"&gt;ALT&lt;/span&gt; Linux&lt;/em&gt;, &lt;em&gt;OpenSuse&lt;/em&gt;, &lt;em&gt;OpenMandriva&lt;/em&gt;. А для &lt;em&gt;Fedora&lt;/em&gt;, &lt;em&gt;Oracle Linux&lt;/em&gt;, &lt;em&gt;CentOS&lt;/em&gt; еще дополнительно понадобится установить программу &lt;strong&gt;Yum&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Программа управления пакетами &lt;strong&gt;Pacman&lt;/strong&gt; нужна для создания контейнера с &lt;em&gt;Arch Linux&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Имейте это ввиду, когда создаете новый&amp;nbsp;контейнер.&lt;/p&gt;
+&lt;p&gt;Мы в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt; в основном используем дистрибутив &lt;em&gt;Ubuntu Trusty&lt;/em&gt; для повседневной работы и в качестве операционной системы для серверов и виртуальных машин. Работает &lt;em&gt;замечательно&lt;/em&gt;, поэтому мы рекомендуем использовать его вам&amp;nbsp;:)&lt;/p&gt;
+&lt;h2&gt;Ubuntu&lt;/h2&gt;
+&lt;p&gt;Пользователи &lt;em&gt;Trusty&lt;/em&gt; или &lt;em&gt;Utopic&lt;/em&gt; могут просто установить пакеты из&amp;nbsp;репозитория:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo apt-get install lxc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Если вы используете более старые версии дистрибутивов или возможно вы захотели использовать более новую версию &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; то у вас есть на выбор два &lt;span class="caps"&gt;PPA&lt;/span&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="https://launchpad.net/~ubuntu-lxc/+archive/ubuntu/stable"&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;: stable&amp;nbsp;builds&lt;/a&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="https://launchpad.net/~ubuntu-lxc/+archive/ubuntu/daily"&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;: daily builds for master&amp;nbsp;branch&lt;/a&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Подключается и устанавливается как всегда&amp;nbsp;просто:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo apt-get install -y python-software-properties
+&lt;span class="nv"&gt;$ &lt;/span&gt;sudo add-apt-repository -y ppa:ubuntu-lxc/stable &lt;span class="c"&gt;# или ppa:ubuntu-lxc/daily, если вы точно знаете, что делаете&lt;/span&gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;sudo apt-get update
+&lt;span class="nv"&gt;$ &lt;/span&gt;sudo apt-get install -y lxc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Программа &lt;em&gt;brctl&lt;/em&gt; находится в пакете &lt;em&gt;bridge-utils&lt;/em&gt;. Программы &lt;em&gt;debootstrap&lt;/em&gt;, &lt;em&gt;rpm&lt;/em&gt;, &lt;em&gt;yum&lt;/em&gt;, &lt;em&gt;pacman&lt;/em&gt; содержатся в одноименных&amp;nbsp;контейнерах.&lt;/p&gt;
+&lt;h2&gt;&lt;span class="caps"&gt;OS&lt;/span&gt;&amp;nbsp;X&lt;/h2&gt;
+&lt;p&gt;Вы можете использовать бесплатный &lt;em&gt;VirtualBox&lt;/em&gt; (&lt;a href="https://www.virtualbox.org/wiki/Downloads"&gt;загрузить можно тут&lt;/a&gt;) для запуска &lt;em&gt;Ubuntu Trusty&lt;/em&gt; (&lt;a href="http://releases.ubuntu.com/14.04/ubuntu-14.04.1-server-amd64.iso"&gt;скачать с сайта Canonical&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Если вы используете &lt;em&gt;Vagrant&lt;/em&gt; (&lt;a href="https://www.vagrantup.com/"&gt;или захотите его использовать&lt;/a&gt;) то просто скопируйте этот листинг в файл с именем Vagrantfile и запустите в&amp;nbsp;терминале:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;vagrant up
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Листинг&amp;nbsp;Vagrantfile:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="no"&gt;VAGRANTFILE_API_VERSION&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2&amp;quot;&lt;/span&gt;
+
+&lt;span class="no"&gt;Vagrant&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;configure&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="no"&gt;VAGRANTFILE_API_VERSION&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;utopic64&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box_url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;http://files.vagrantup.com/utopic64.box&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="ss"&gt;:shell&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:inline&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;apt-get update -qq &amp;amp;&amp;amp; apt-get install -yqq lxc bridge-utils&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt; &lt;span class="ss"&gt;:private_network&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;10.0.4.2&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt; &lt;span class="ss"&gt;:public_network&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Остальную работу за вас сделает &lt;em&gt;Vagrant&lt;/em&gt;. Спустя несколько минут вы можете выполнить эту команду, что бы оказаться внутри полностью настроенной системы с установленным &lt;span class="caps"&gt;LXC&lt;/span&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;vagrant ssh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Именно так и поступают некторые разработчики в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;, использующие &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;.&lt;/p&gt;
+&lt;h2&gt;После&amp;nbsp;установки&lt;/h2&gt;
+&lt;p&gt;Запустив программу &lt;code&gt;lxc-checkconfig&lt;/code&gt;, вы можете убедится в том, что всё работает как нужно. В данном случае везде будет зеленое слово &lt;strong&gt;enabled&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;lxc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;checkconfig&lt;/span&gt; 
+&lt;span class="n"&gt;Kernel&lt;/span&gt; &lt;span class="n"&gt;configuration&lt;/span&gt; &lt;span class="k"&gt;not&lt;/span&gt; &lt;span class="n"&gt;found&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;proc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;gz&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt; &lt;span class="n"&gt;searching&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="n"&gt;Kernel&lt;/span&gt; &lt;span class="n"&gt;configuration&lt;/span&gt; &lt;span class="n"&gt;found&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;boot&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;3.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;031900r&lt;/span&gt;&lt;span class="n"&gt;c6&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;generic&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt; &lt;span class="n"&gt;Namespaces&lt;/span&gt; &lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;Namespaces&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Utsname&lt;/span&gt; &lt;span class="n"&gt;namespace&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Ipc&lt;/span&gt; &lt;span class="n"&gt;namespace&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Pid&lt;/span&gt; &lt;span class="n"&gt;namespace&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;User&lt;/span&gt; &lt;span class="n"&gt;namespace&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Network&lt;/span&gt; &lt;span class="n"&gt;namespace&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Multiple&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;dev&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pts&lt;/span&gt; &lt;span class="n"&gt;instances&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+
+&lt;span class="o"&gt;---&lt;/span&gt; &lt;span class="n"&gt;Control&lt;/span&gt; &lt;span class="n"&gt;groups&lt;/span&gt; &lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;clone_children&lt;/span&gt; &lt;span class="n"&gt;flag&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;device&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;sched&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;cpu&lt;/span&gt; &lt;span class="n"&gt;account&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;memory&lt;/span&gt; &lt;span class="n"&gt;controller&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Cgroup&lt;/span&gt; &lt;span class="n"&gt;cpuset&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+
+&lt;span class="o"&gt;---&lt;/span&gt; &lt;span class="n"&gt;Misc&lt;/span&gt; &lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;Veth&lt;/span&gt; &lt;span class="n"&gt;pair&lt;/span&gt; &lt;span class="n"&gt;device&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Macvlan&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;Vlan&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+&lt;span class="n"&gt;File&lt;/span&gt; &lt;span class="n"&gt;capabilities&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;enabled&lt;/span&gt;
+
+&lt;span class="n"&gt;Note&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Before&lt;/span&gt; &lt;span class="n"&gt;booting&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;kernel&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt; &lt;span class="n"&gt;check&lt;/span&gt; &lt;span class="n"&gt;its&lt;/span&gt; &lt;span class="n"&gt;configuration&lt;/span&gt;
+&lt;span class="n"&gt;usage&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;CONFIG&lt;/span&gt;&lt;span class="o"&gt;=/&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lxc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;checkconfig&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Так же в системе появится новый сетевой интерфейс, который будет объединять все контейнеры наподобие железного свитча и выпускать их в&amp;nbsp;интернет:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo ifconfig &lt;span class="p"&gt;|&lt;/span&gt; grep lxc
+lxcbr0    Link encap:Ethernet  HWaddr e2:0a:c8:95:d0:b3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Перед тем, как&amp;nbsp;начать&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;Первая вещь&lt;/em&gt;, которую вам вам нужно узнать о &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; это то, что он хранит файлы контейнера просто в директории &lt;code&gt;/var/lib/lxc/&amp;lt;container-name&amp;gt;&lt;/code&gt;, которая обычно&amp;nbsp;содержит:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;rootfs&lt;/strong&gt; &amp;#8212; просто директория, содержит &lt;em&gt;файлы гостевой ОС&lt;/em&gt;&lt;sup id="fnref:rootfs"&gt;&lt;a class="footnote-ref" href="#fn:rootfs" rel="footnote"&gt;5&lt;/a&gt;&lt;/sup&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;config&lt;/strong&gt; &amp;#8212; конфигурационный файл контейнера&lt;sup id="fnref:config"&gt;&lt;a class="footnote-ref" href="#fn:config" rel="footnote"&gt;6&lt;/a&gt;&lt;/sup&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;fstab&lt;/strong&gt; &amp;#8212; содержит информацию что куда монтировать в &lt;em&gt;формате fstab&lt;/em&gt;&lt;sup id="fnref:fstab"&gt;&lt;a class="footnote-ref" href="#fn:fstab" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Вторая вещь&lt;/em&gt;, которую вам вам нужно узнать это основной рабочий процесс создания контейнеров. Подчиняется такому простому&amp;nbsp;шаблону:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;создать новый &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; &lt;em&gt;контейнер&lt;/em&gt;, используя&amp;nbsp;шаблон;&lt;/li&gt;
+&lt;li&gt;установить программное обеспечение внутрь контейнера и настроить&amp;nbsp;его;&lt;/li&gt;
+&lt;li&gt;клонировать контейнер для создания &amp;#8220;замороженной&amp;#8221; копии (не путать с &lt;code&gt;lxc-freeze&lt;/code&gt;). По сути, это операция не делает ничего, кроме копирования файловой системы контейнера из &lt;code&gt;/var/lib/lxc/&amp;lt;new-container&amp;gt;/rootfs&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;когда вы получите готовый контейнер, просто создайте из него tar.bz2 архив. Потом он может быть запущен на другом&amp;nbsp;сервере.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;Основы&lt;/h1&gt;
+&lt;p&gt;Наконец-то, создаем первый&amp;nbsp;контейнер:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-create -t ubuntu -n ubuntu-01
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;В первый раз это затянется минут на пять, так как &lt;code&gt;lxc-create&lt;/code&gt; запустит шаблон &lt;code&gt;ubuntu&lt;/code&gt;, который соберёт новый контейнер и скопирует его в папку &lt;code&gt;/var/lib/lxc/ubuntu-01&lt;/code&gt;. &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; обычно использует &lt;code&gt;/var/lib/lxc/&lt;/code&gt; для хранения контейнеров, &lt;code&gt;/var/cache/lxc/&lt;/code&gt; использует как место для кеша (главным образом используется программой &lt;code&gt;lxc-create&lt;/code&gt; и&amp;nbsp;шаблонами).&lt;/p&gt;
+&lt;p&gt;Давайте скорее его запустим (логин и пароль &lt;code&gt;ubuntu&lt;/code&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-start -n ubuntu-01
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Обратите внимание на то, что гостевая ОС имеет свой &lt;em&gt;init процесс&lt;/em&gt;, так же там есть запущенный &lt;em&gt;sshd&lt;/em&gt; и она, в общем-то, не сильно отличается от запущенной где нибудь на &lt;em&gt;&lt;span class="caps"&gt;EC2&lt;/span&gt;&lt;/em&gt;. Запустив &lt;code&gt;ifconfig&lt;/code&gt; вы увидите, что у контейнера есть сетевой интерфейс с настроенным по &lt;em&gt;&lt;span class="caps"&gt;DHCP&lt;/span&gt;&lt;/em&gt; адресом &amp;#8212; это поведение по умолчанию, поэтому вам не нужно беспокоится о адресах для&amp;nbsp;контейнера.&lt;/p&gt;
+&lt;p&gt;Вернутся обратно из контейнера в ваш шелл, получится только завершением работы контейнера, а этого достичь можно двумя&amp;nbsp;способами:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;выполнить команду выключения в контейнере: &lt;code&gt;sudo shutdown -h now&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;закрыть окно&amp;nbsp;консоли.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Это случилось потому что вы запустили контейнер без использования ключа &lt;code&gt;-d&lt;/code&gt;. &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не позволяет отсоединится (detach) от контейнера, если он был запущен не в&amp;nbsp;фоне.&lt;/p&gt;
+&lt;h2&gt;Шаблоны&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;Шаблоны&lt;/em&gt; &amp;#8212; это просто исполняемый файл, написанный на bash (но не обязательно), создающий &lt;em&gt;rootfs&lt;/em&gt; для контейнера, остальную работу по созданию контейнера берет на себя &lt;code&gt;lxc-create&lt;/code&gt;. Имейте ввиду, что для работы многих шаблонов нужны дополнительные программы, о которых было сказано в начале статьи. Шаблоны можно найти в &lt;code&gt;/usr/share/lxc/templates&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;На данный момент существуют и поддерживаются &lt;em&gt;шаблоны&lt;/em&gt; для &lt;em&gt;Alpine Linux&lt;/em&gt;, &lt;em&gt;&lt;span class="caps"&gt;ALT&lt;/span&gt; Linux&lt;/em&gt;, &lt;em&gt;Arch Linux&lt;/em&gt;, &lt;em&gt;CentOS&lt;/em&gt;, &lt;em&gt;CirrOS&lt;/em&gt;, &lt;em&gt;Debian&lt;/em&gt;, &lt;em&gt;Fedora&lt;/em&gt;, &lt;em&gt;Gentoo&lt;/em&gt;, &lt;em&gt;OpenMandriva&lt;/em&gt;, &lt;em&gt;OpenSUSE&lt;/em&gt;, &lt;em&gt;Oracle Linux&lt;/em&gt;, &lt;em&gt;Plamo Linux&lt;/em&gt;, &lt;em&gt;Ubuntu&lt;/em&gt;. Среди шаблонов можно также найти несколько&amp;nbsp;необычных:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;busybox&lt;/strong&gt; &amp;#8212; шаблон, создающий минималистический легковесный контейнер, в котором установлен только &lt;em&gt;busybox&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;sshd&lt;/strong&gt; &amp;#8212; обычно используется для того, чтобы пустить гостей в вашу приватную&amp;nbsp;сеть;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ubuntu-cloud&lt;/strong&gt; &amp;#8212; шаблон загружает из https://cloud-images.ubuntu.com/ образ, собранный &lt;em&gt;Cannonical&lt;/em&gt;, распаковывает и модифицирует для работы в &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;download&lt;/strong&gt; &amp;#8212; команда разработчиков &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; собирает образы дистрибутивов, главным образом приспособленных для работы в контейнерах, которые запущены от имени непривилегированных&amp;nbsp;пользователей.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Почти все шаблоны обладают дополнительными опциями, которые можно узнать по ключу &lt;code&gt;--help&lt;/code&gt; после вызова &lt;code&gt;lxc-create&lt;/code&gt;. Используйте &lt;code&gt;--&lt;/code&gt; для разделения опций &lt;code&gt;lxc-create&lt;/code&gt; и опций &lt;em&gt;шаблона&lt;/em&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-create -t ubuntu -n ubuntu-02 -- --help
+/usr/share/lxc/templates/lxc-ubuntu -h&lt;span class="p"&gt;|&lt;/span&gt;--help &lt;span class="o"&gt;[&lt;/span&gt;-a&lt;span class="p"&gt;|&lt;/span&gt;--arch&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;-b&lt;span class="p"&gt;|&lt;/span&gt;--bindhome &amp;lt;user&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;-d&lt;span class="p"&gt;|&lt;/span&gt;--debug&lt;span class="o"&gt;]&lt;/span&gt;
+   &lt;span class="o"&gt;[&lt;/span&gt;-F &lt;span class="p"&gt;|&lt;/span&gt; --flush-cache&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;-r&lt;span class="p"&gt;|&lt;/span&gt;--release &amp;lt;release&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt; -S &lt;span class="p"&gt;|&lt;/span&gt; --auth-key &amp;lt;keyfile&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt;
+   &lt;span class="o"&gt;[&lt;/span&gt;--rootfs &amp;lt;rootfs&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;--packages &amp;lt;packages&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;-u&lt;span class="p"&gt;|&lt;/span&gt;--user &amp;lt;user&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;--password &amp;lt;password&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt;
+   &lt;span class="o"&gt;[&lt;/span&gt;--mirror &amp;lt;url&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;--security-mirror &amp;lt;url&amp;gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Копаем&amp;nbsp;глубже&lt;/h2&gt;
+&lt;p&gt;Давайте сделаем контейнер с &lt;em&gt;Ubuntu Saucy&lt;/em&gt; с архитектурой &lt;em&gt;i386&lt;/em&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-create -t ubuntu -n ubuntu-03 -- --release saucy --arch i386
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Пока контейнер создаётся, отвечу на возникший вопрос: а может ли &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; запускать контейнеры с архитектурой отличной от &lt;em&gt;x64&lt;/em&gt; и &lt;em&gt;і386&lt;/em&gt;? Может: например, &lt;em&gt;&lt;span class="caps"&gt;ARM&lt;/span&gt;&lt;/em&gt; используя &lt;em&gt;qemu&lt;/em&gt; (user space &lt;span class="caps"&gt;CPU&lt;/span&gt; emulation &amp;#8212; qemu-user-static). К сожалению, это работает очень&amp;nbsp;медленно.&lt;/p&gt;
+&lt;p&gt;В этот раз запустим контейнер с ключом &lt;code&gt;-d&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-start -d -n ubuntu-03
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Команда выполнится за мгновение &amp;#8212; контейнер начнет загружаться в фоне. Отслеживать этот процесс можно используя команду &lt;code&gt;lxc-ls&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-ls -f
+NAME              STATE    IPV4  IPV6  GROUPS  AUTOSTART  
+--------------------------------------------------------  
+ubuntu-01         STOPPED  -     -     -       NO         
+ubuntu-03         RUNNING  -     -     -       NO 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Без опции &lt;code&gt;-f&lt;/code&gt; (&lt;code&gt;--fancy&lt;/code&gt;) программа &lt;code&gt;lxc-ls&lt;/code&gt; просто выводит список контейнеров, которые у вас есть. Как вы могли заметить, каждый контейнер имеет статус, а используя опции &lt;code&gt;--running&lt;/code&gt; или &lt;code&gt;--stopped&lt;/code&gt; можно вывести на печатать только работающие или остановленные&amp;nbsp;контейнеры.&lt;/p&gt;
+&lt;h2&gt;Получаем доступ к&amp;nbsp;контейнеру&lt;/h2&gt;
+&lt;p&gt;Что бы попасть внутрь контейнера у вас есть несколько опций, а&amp;nbsp;именно:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;использовать &lt;strong&gt;lxc-console&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;залогинится через &lt;strong&gt;ssh&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;запустить bash внутри контейнера используя &lt;strong&gt;lxc-attach&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Разница в основном заключается в двух вещах: от куда вы можете получить доступ внутрь контейнера и будете ли вы иметь возможность управлять тем, как программы будут исполнены внутри&amp;nbsp;контейнера.&lt;/p&gt;
+&lt;h3&gt;lxc-console&lt;/h3&gt;
+&lt;p&gt;Давайте начнем с &lt;code&gt;lxc-console&lt;/code&gt;, используйте &lt;code&gt;Ctrl+A Q&lt;/code&gt; для выхода из контейнера (логин и пароль &lt;code&gt;ubuntu&lt;/code&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-console -n ubuntu-03
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;По сути, программа &lt;code&gt;lxc-console&lt;/code&gt; создаёт &lt;em&gt;виртуальную косоль&lt;/em&gt;, почти такую же, какую вы можете получить по нажатию &lt;code&gt;Ctrl+Alt+F1&lt;/code&gt; в вашем &lt;em&gt;Linux&lt;/em&gt;.&lt;/p&gt;
+&lt;h3&gt;Доступ через &lt;span class="caps"&gt;SSH&lt;/span&gt;&lt;/h3&gt;
+&lt;p&gt;Тоже самое можно сделать и с помощью &lt;em&gt;ssh&lt;/em&gt;, только сначало нужно узнать куда подключаться. Узнать &lt;em&gt;&lt;span class="caps"&gt;IP&lt;/span&gt; адрес&lt;/em&gt; контейнера можно используя &lt;code&gt;lxc-ls -f&lt;/code&gt; или же другую программу: &lt;code&gt;lxc-info&lt;/code&gt;. &lt;code&gt;sudo lxc-info -iH -n ubuntu-03&lt;/code&gt; просто напечатает все адреса принадлежащие контейнеру. Давайте используем&amp;nbsp;это:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;ssh ubuntu@&lt;span class="k"&gt;$(&lt;/span&gt;lxc-info -iH -n ubuntu-03 &lt;span class="p"&gt;|&lt;/span&gt; head -n1&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Вот вы снова попали внутрь контейнера. Поздравляю, половина пути&amp;nbsp;пройдена.&lt;/p&gt;
+&lt;h3&gt;lxc-attach&lt;/h3&gt;
+&lt;p&gt;Следующая программа в списке &lt;code&gt;lxc-attach&lt;/code&gt; позволяет присоединится (attach) к контейнеру и дать вам шелл внутри этого&amp;nbsp;контейнера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-attach -n ubuntu-03
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Учтите, что если команда не указана, то будет запущен шелл по умолчанию для пользователя от имени которого вы работаете. Если такого пользователя нет в контейнере, то по этой причине вы получите сообщение об&amp;nbsp;ошибке.&lt;/p&gt;
+&lt;p&gt;Можно просто запустутить&amp;nbsp;команду:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-attach -n ubuntu-03 -- id
+&lt;span class="nv"&gt;uid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;gid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;groups&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="c"&gt;# или же даже так&lt;/span&gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-attach -n ubuntu-03 -- bash -c &lt;span class="s1"&gt;&amp;#39;id&amp;#39;&lt;/span&gt;
+&lt;span class="nv"&gt;uid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;gid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;groups&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;По умолчанию все переменные окружения будут переданы в запущенную программу внутри контейнера (&lt;code&gt;--keep-env&lt;/code&gt;). По вполне понятным причинам вы можете не захотеть этого делать, тогда используйте опцию &lt;code&gt;--clear-env&lt;/code&gt; когда запускаете &lt;code&gt;lxc-attach&lt;/code&gt;. В таком случае будет передана только одна переменная окружения &amp;#8212; &lt;code&gt;container=lxc&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Но это еще не все: &lt;code&gt;lxc-attach&lt;/code&gt; позволяем вам указать к каким &lt;code&gt;namespaces&lt;/code&gt; подключатся внутри контейнера &lt;code&gt;-s&lt;/code&gt; (&lt;code&gt;--namespaces&lt;/code&gt;) и позволяет не сбрасывать привилегии при запуске &lt;code&gt;-e&lt;/code&gt; (&lt;code&gt;--elevated-privileges&lt;/code&gt;), правда использование этой опции отключит так же &lt;code&gt;cgroup&lt;/code&gt;, &lt;code&gt;apparmor&lt;/code&gt; для запущенного процесса. Выполнив эту команду вы получите шелл имеющий доступ к сетевому интерфейсу контейнера, но работающий как бы вне&amp;nbsp;контейнера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-attach -n p1 -e -s &lt;span class="s1"&gt;&amp;#39;NETWORK|UTSNAME&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Имейте ввиду, что нужно быть осторожным. Но время от времени, может понадобиться запускать программы, которые работают в хост системе, но расположены внутри контейнера с его сетью и или другим &lt;em&gt;namespace&lt;/em&gt;.&lt;/p&gt;
+&lt;h2&gt;Завершение жизненного цикла&amp;nbsp;контейнера&lt;/h2&gt;
+&lt;p&gt;С помощью команды &lt;code&gt;lxc-stop&lt;/code&gt; можно остановить выполнение&amp;nbsp;контейнера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;# корректная остановка контейнера из хоста
+$ sudo lxc-stop -n ubuntu-03 
+# Грубое убийство контейнера из хоста
+$ sudo lxc-stop -n ubuntu-03 -k 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;А после того, как контейнер перестал быть нужен вам, просто удалите его используя &lt;code&gt;lxc-destroy&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;# если контейнер уже остановлен
+$ sudo lxc-destroy -n ubuntu-03
+# есил контейнер еще работает, -f опция попытается его остановить
+$ sudo lxc-destroy -n ubuntu-03 -f
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Клонирование&amp;nbsp;контейнеров&lt;/h2&gt;
+&lt;p&gt;Клонирование контейнеров часто востребованная операция, выполняется с помощью программы &lt;code&gt;lxc-clone&lt;/code&gt;. Она имеет не очень очевидные параметры, а именно &lt;code&gt;-o&lt;/code&gt; (&lt;code&gt;--orig&lt;/code&gt;) задает имя контейнера, который будет скопирован, а &lt;code&gt;-n&lt;/code&gt; (&lt;code&gt;--new&lt;/code&gt;) имя нового контейнера. Представим, что у вас уже есть контейнер с каким то установленным и настроенным программным обеспечением и вы хотите его&amp;nbsp;склонировать:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-clone -o nginx-slave-01 -n nginx-slave-02
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Через некоторое время вы получите копию родительского&amp;nbsp;контейнера.&lt;/p&gt;
+&lt;p&gt;Moving containers between hosts
+We’re using simple tar.bz2 archive to share container data between servers and people:
+$ sudo tar -cjf container.tar.bz2 /var/lib/lxc/&lt;container-name&gt;
+$ # put archive to s3 or scp to somewhere
+$ # and once you need to roll it to server - just unarchive
+$ cd / &amp;amp;&amp;amp; tar -xjf&amp;nbsp;container.tar.bz2&lt;/p&gt;
+&lt;p&gt;Of course container must be stopped before that operation in proper way (i.e. services must be shutdowned correctly, otherwise you risk get corrupted data). Think of this that like you doing full &lt;span class="caps"&gt;OS&lt;/span&gt; backup for moving to a another hard drive. Of course you may have to clone it after unpacking or modify container’s config file, if &lt;span class="caps"&gt;LXC&lt;/span&gt; paths are different.
+Container configuration
+Each container have configuration file stored in /var/lib/lxc/&lt;container-name&gt;/config. &lt;span class="caps"&gt;LXC&lt;/span&gt; configuration is split in two parts: container and system configuration. Most important settings&amp;nbsp;are:&lt;/p&gt;
+&lt;p&gt;lxc.rootfs - specify the root file system path for the container
+lxc.mount - specify a file location in fstab format, containing the mount information
+lxc.utsname - specify the hostname of the container
+lxc.arch - specify the arch for the container
+lxc.network.* - specify various network related options for the&amp;nbsp;container&lt;/p&gt;
+&lt;p&gt;Other options have reasonable default values setted by developers. You can find them by search lxc.include directive in the container config file.
+Container autostarting
+If you want have to start your container at boot time, just put these lines into the container&amp;nbsp;config:&lt;/p&gt;
+&lt;h1&gt;the container should be auto-started (0 mean&amp;nbsp;off)&lt;/h1&gt;
+&lt;p&gt;lxc.start.auto =&amp;nbsp;1&lt;/p&gt;
+&lt;h1&gt;how long to wait in seconds before starting the next&amp;nbsp;one&lt;/h1&gt;
+&lt;p&gt;lxc.start.delay =&amp;nbsp;5&lt;/p&gt;
+&lt;h1&gt;an integer used to sort containers when&amp;nbsp;auto-started&lt;/h1&gt;
+&lt;h1&gt;a serie of containers at&amp;nbsp;once&lt;/h1&gt;
+&lt;p&gt;lxc.start.order = 100
+Sharing data between host system and a container
+You can bind any directory inside containers. This allows to you share data between your host and containers. For example, you created folder for storing Redis database files outside your&amp;nbsp;container:&lt;/p&gt;
+&lt;p&gt;$ sudo mkdir -p&amp;nbsp;/opt/containers/redis-01&lt;/p&gt;
+&lt;h1&gt;bind /opt/containers/redis-01 to&amp;nbsp;/var/lib/lxc/redis-01/rootfs/var/lib/redis&lt;/h1&gt;
+&lt;p&gt;$ echo &amp;#8220;/opt/containers/redis-01\t/var/lib/lxc/redis-01/rootfs/var/lib/redis\tnone\tbind\t0\t0&amp;#8221; | sudo tee &amp;#8212;append /var/lib/lxc/redis-01/fstab &amp;gt; /dev/null
+$ # start container and you will find that the redis server database will be stored inside /opt/containers/redis-01&amp;nbsp;directory&lt;/p&gt;
+&lt;p&gt;In that way you can share one directory between two or more containers. Just have in mind: better to make read-only bind in this case (just add ro to mount options). You really don’t want to have situation when multiple processes write to a one file at same&amp;nbsp;time.&lt;/p&gt;
+&lt;p&gt;What if you want to share data between containers running on different hosts you may use any distributed network file systems like &lt;span class="caps"&gt;NFS&lt;/span&gt; or other available.
+Few words, if you want to use Iptables inside a container
+If you tried to install iptables package inside the container, probably that will be ended with errors and that&amp;nbsp;why:&lt;/p&gt;
+&lt;p&gt;kernel module ip6table_filter is not inserted into running kernel
+/lib/modules in the container is&amp;nbsp;empty&lt;/p&gt;
+&lt;p&gt;To solve this problems just run on&amp;nbsp;host:&lt;/p&gt;
+&lt;h1&gt;bind host’s /lib/modules path to the&amp;nbsp;container&lt;/h1&gt;
+&lt;p&gt;$ echo &amp;#8220;/lib/modules\t/var/lib/lxc/&lt;container-name&gt;/lib/modules\tnone\tbind\t0\t0&amp;#8221; | sudo tee &amp;#8212;append /var/lib/lxc/&lt;container-name&gt;/fstab &amp;gt;&amp;nbsp;/dev/null&lt;/p&gt;
+&lt;h1&gt;insert the kernel&amp;nbsp;module&lt;/h1&gt;
+&lt;p&gt;$ sudo modprobe&amp;nbsp;ip6table_filter&lt;/p&gt;
+&lt;h1&gt;and adds it to load on&amp;nbsp;boot&lt;/h1&gt;
+&lt;p&gt;$ echo &amp;#8216;ip6table_filter&amp;#8217; | sudo tee &amp;#8212;append /etc/modules &amp;gt;&amp;nbsp;/dev/null&lt;/p&gt;
+&lt;h1&gt;Что&amp;nbsp;дальше?&lt;/h1&gt;
+&lt;p&gt;В этом посте я не написал о следующих интересных вещах в &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; (хорошие темы для будующих постов про &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, некоторые технологии мы уже используем в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Running nested&amp;nbsp;containers&lt;/li&gt;
+&lt;li&gt;Running Docker containers inside &lt;span class="caps"&gt;LXC&lt;/span&gt;&amp;nbsp;containers&lt;/li&gt;
+&lt;li&gt;Running containers under unprivileged&amp;nbsp;user&lt;/li&gt;
+&lt;li&gt;Running &lt;span class="caps"&gt;LXC&lt;/span&gt; ephemeral&amp;nbsp;containers&lt;/li&gt;
+&lt;li&gt;Running &lt;span class="caps"&gt;ARM&lt;/span&gt;&amp;nbsp;containers&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt; container lifecycle&amp;nbsp;hooks&lt;/li&gt;
+&lt;li&gt;Makefile is new Dockerfile for &lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;Advanced access control with Apparmor and&amp;nbsp;SELinux&lt;/li&gt;
+&lt;li&gt;Advanced network for &lt;span class="caps"&gt;LXC&lt;/span&gt;: dnsmasq, static addresses,&amp;nbsp;nating&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt; network: macvlan (and ipvlan soon), vlan, physical&amp;nbsp;device&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt; networking with&amp;nbsp;OpenVSwitch&lt;/li&gt;
+&lt;li&gt;Storing containers data in &lt;span class="caps"&gt;LVM&lt;/span&gt;, &lt;span class="caps"&gt;ZFS&lt;/span&gt; or&amp;nbsp;Btrfs&lt;/li&gt;
+&lt;li&gt;Snapshotting container’s&amp;nbsp;filesystem&lt;/li&gt;
+&lt;li&gt;Options for backup and restore&amp;nbsp;containers&lt;/li&gt;
+&lt;li&gt;Freezing and restoring: lxc-freeze and&amp;nbsp;lxc-unfreeze&lt;/li&gt;
+&lt;li&gt;Checkpointing and restoring a container with &lt;span class="caps"&gt;CRIU&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;Additional tools for exploring and debugging&amp;nbsp;containers&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="footnote"&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id="fn:namespaces"&gt;
+&lt;p&gt;Смотри man page &lt;code&gt;namespaces(7)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:namespaces" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:capabilities"&gt;
+&lt;p&gt;Смотри man page &lt;code&gt;capabilities(7)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:capabilities" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:seccomp"&gt;
+&lt;p&gt;Смотри man page &lt;code&gt;seccomp(2)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:seccomp" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:bridges"&gt;
+&lt;p&gt;Смотри man page &lt;code&gt;bridge(8)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:bridges" rev="footnote" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:rootfs"&gt;
+&lt;p&gt;Если вы не ипользуете &lt;em&gt;&lt;span class="caps"&gt;LVM&lt;/span&gt;&lt;/em&gt;, &lt;em&gt;Btrfs&lt;/em&gt; или &lt;em&gt;Zfs&lt;/em&gt; для хранения данных контейнера&amp;#160;&lt;a class="footnote-backref" href="#fnref:rootfs" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:config"&gt;
+&lt;p&gt;Смотрите man pages &lt;code&gt;lxc.conf(5)&lt;/code&gt;, &lt;code&gt;lxc.container.conf(5)&lt;/code&gt; и &lt;code&gt;lxc.system.conf(5)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:config" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:fstab"&gt;
+&lt;p&gt;Смотрите на опцию &lt;code&gt;lxc.mount&lt;/code&gt; в конфиге контейнера&amp;#160;&lt;a class="footnote-backref" href="#fnref:fstab" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</summary><category term="lxc"></category></entry></feed>

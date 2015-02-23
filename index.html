@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+        <meta charset="utf-8" />
+        <title>Asakura's drawers table</title>
+        <link rel="stylesheet" href="http://asakura.github.io/theme/css/main.css" />
+        <link href="http://asakura.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Asakura's drawers table Atom Feed" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://asakura.github.io/">Asakura's drawers table </a></h1>
+                <nav><ul>
+                    <li><a href="http://asakura.github.io/category/virtualization.html">Virtualization</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="http://asakura.github.io/getting-started-with-lxc.html">Getting started with <span class="caps">LXC</span></a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2015-02-23T10:20:00+01:00">
+                Published: Пан 23 Люты 2015
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://asakura.github.io/author/mikalai-sevastsyanau.html">Mikalai Sevastsyanau</a>
+        </address>
+<p>In <a href="http://asakura.github.io/category/virtualization.html">Virtualization</a>. </p>
+<p>tags: <a href="http://asakura.github.io/tag/lxc.html">lxc</a> </p>
+</footer><!-- /.post-info --><p><em><span class="caps">LXC</span></em> &#8212; это набор инструментов, позволяющий посредством <em><span class="caps">API</span></em> использовать возможности ядра <em>Linux</em> по организации <em>системы виртуализации</em> на уровне операционной системы для запуска нескольких изолированных <em>экземпляров Linux</em> (<em>контейнеров</em>) на одном компьютере и управлению&nbsp;ими.</p>
+<p><em><span class="caps">LXC</span></em> не использует никакую систему виртуализации на подобие <em><span class="caps">XEN</span></em> или <em><span class="caps">KVM</span></em>, поэтому все экземпляры контейнеров используют <em>одно ядро ОС</em>, но при этом процессы, запущенные в одном из контейнеров, <em>остаются полностью изолированными</em> от процессов, запущенных в другом&nbsp;контейнере.</p>
+<p><em><span class="caps">LXC</span></em> не диктует &#8220;единственный правильный способ&#8221; использования контейнерной виртуализации, а раскрывает и позволяет управлять технологиями, на основе которых он построен (ко многим предоставляя удобный интерфейс&nbsp;управления):</p>
+<ul>
+<li><strong><a href="https://www.kernel.org/doc/Documentation/cgroups/cgroups.txt">cgroups</a></strong> обеспечивают для групп процессов ограничение и изоляцию физических ресурсов, таких как <em><span class="caps">CPU</span></em>, <em>memory</em>, <em>disk I/O</em>, <em>network</em>. <em><span class="caps">LXC</span></em> создает <em>cgroup</em> (<em>control group</em> &#8212; <em>группу управления</em>) для каждого запущенного контейнера, т.е. вы можете гибко управлять каждым контейнером независимо от&nbsp;другого.</li>
+<li><strong>namespaces</strong><sup id="fnref:namespaces"><a class="footnote-ref" href="#fn:namespaces" rel="footnote">1</a></sup> обеспечивают <em>изоляцию пространств имен ядра</em> (<em>ipc</em>, <em>uts</em>, <em>mount</em>, <em>pid</em>, <em>network</em>, <em>user</em>), говоря простым языком контенеры не могу воздействовать друг на друга. С пользовательской точки зрения, это выглядит так, что <em>init процес</em> каждого контейнера имеет <em><span class="caps">PID</span> 1</em>, а программа <code>ifconfig</code> показывает только сетевые интерфейсы, которые принадлежат этому контейнеру, где была запущена.
+capabilities обеспечивают контроль над тем, какие привилегированные операции может выполнять&nbsp;процесс.</li>
+<li><strong><a href="http://wiki.apparmor.net/index.php/Main_Page">Apparmor</a></strong> и <strong><a href="http://selinuxproject.org/page/Main_Page">SELinux</a></strong> расширяют традиционную <em>Unix discretionary access control</em> (<em><span class="caps">DAC</span></em>) модель моделью <em>mandatory access control</em> (<em><span class="caps">MAC</span></em>), главным образом используются для защиты вашей хост системы от того, что вы запускаете в контейнерах. Например, используется для того, что бы определить, какие устройства будут доступны внутри контейнера или какие фичи ядра будут доступны для&nbsp;использования.</li>
+<li><strong>seccomp</strong><sup id="fnref:seccomp"><a class="footnote-ref" href="#fn:seccomp" rel="footnote">3</a></sup> предоставляет механизм песочницы для приложений, а именно позволяет процессу сделать переход в “безопасный” режим, когда разрешены только системные вызовы на чтение и запись к уже открытым файлам. В последних версиях ядра так же позволяет выбрать какие еще системные вызовы будут доступны для&nbsp;вызова.</li>
+</ul>
+<h1><span class="caps">LXC</span> и&nbsp;что?</h1>
+<p>Возможно вы уже знакомы с <em>Docker</em> и вам интересно зачем вам <em><span class="caps">LXC</span></em> если у вас уже работает <em>Docker</em>? Тут есть пара принципиальных нюансов, которые на самом деле всё&nbsp;меняют.</p>
+<p><em>Docker</em> решение для запуска контейнеров с одним запущенным приложением (процессом). Docker не выступает в качестве легковесной виртуальной машины и не может считаться таким, так как его контейнеры умышленно ограничены одним&nbsp;процессом.</p>
+<p>С другой стороны контейнеры <em><span class="caps">LXC</span></em> не имеют таких ограничений и выступают в роли виртуальной машины: вы можете установить вашу собственную операционную систему, залогинится, установить приложения и сервисы и это все будет работать так, как вы этого и ожидаете. Контейнеры имеют настоящий <em>init процесс</em>, запущенные сервисы и системные&nbsp;демоны.</p>
+<h1>Установка</h1>
+<p>В современных дистрибутивах, таких как <em>Ubuntu Trusty</em> (14.04), <em>Utopic</em> (14.10) или новее, <em>Debian Jessie</em>, поставляется стабильная 1.х версия <em><span class="caps">LXC</span></em>. Можно ставить прямо из репозитория и начинать использовать. Отдельно стоит упомянуть пользователей <em><span class="caps">OS</span> X</em>: <em><span class="caps">LXC</span></em>, как и <em>Docker</em>, не поддерживает и не будет поддерживать эту операционную систему, так как для своей работы использует технологии, реализованные только в <em>ядре Linux</em>. Поэтому вам придется использовать одну из полновесных виртуальных машин для запуска одного из современных дистрибутивов. Возможно, что некоторые пользователи <em>Linux</em> захотят использовать подход, рекомендованный пользователям <em><span class="caps">OS</span> X</em>.</p>
+<p>Контейнеры собираются <em>шаблонами</em>, которые на самом деле просто программы. Если программа использует дополнительное программое обеспечение, то вам придется установить его или иначе шаблон не будет работать. Например, вам могут понадобится эти программы для работы большинства&nbsp;шаблонов:</p>
+<ul>
+<li><strong>Bridge utils</strong> (а именно утилита <em>brctl</em>) для управления <em>Linux bridges</em><sup id="fnref:bridges"><a class="footnote-ref" href="#fn:bridges" rel="footnote">4</a></sup>;</li>
+<li>Программа <strong>Debootstrap</strong> для установки системы основанной на <em>Debian</em> из уже работающей ОС, понадобится, если вы решите использовать шаблон для создания контейнера с <em>Ubuntu</em> или <em>Debian</em>;</li>
+<li>Программа управления пакетами <strong><span class="caps">RPM</span></strong> будет нужна, если вы захотите создать контейнер c дистрибутивом <em><span class="caps">ALT</span> Linux</em>, <em>OpenSuse</em>, <em>OpenMandriva</em>. А для <em>Fedora</em>, <em>Oracle Linux</em>, <em>CentOS</em> еще дополнительно понадобится установить программу <strong>Yum</strong>;</li>
+<li>Программа управления пакетами <strong>Pacman</strong> нужна для создания контейнера с <em>Arch Linux</em>.</li>
+</ul>
+<p>Имейте это ввиду, когда создаете новый&nbsp;контейнер.</p>
+<p>Мы в <a href="http://conjur.net">Conjur</a> в основном используем дистрибутив <em>Ubuntu Trusty</em> для повседневной работы и в качестве операционной системы для серверов и виртуальных машин. Работает <em>замечательно</em>, поэтому мы рекомендуем использовать его вам&nbsp;:)</p>
+<h2>Ubuntu</h2>
+<p>Пользователи <em>Trusty</em> или <em>Utopic</em> могут просто установить пакеты из&nbsp;репозитория:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo apt-get install lxc
+</pre></div>
+
+
+<p>Если вы используете более старые версии дистрибутивов или возможно вы захотели использовать более новую версию <em><span class="caps">LXC</span></em> то у вас есть на выбор два <span class="caps">PPA</span>:</p>
+<ol>
+<li><strong><a href="https://launchpad.net/~ubuntu-lxc/+archive/ubuntu/stable"><span class="caps">LXC</span>: stable&nbsp;builds</a></strong></li>
+<li><strong><a href="https://launchpad.net/~ubuntu-lxc/+archive/ubuntu/daily"><span class="caps">LXC</span>: daily builds for master&nbsp;branch</a></strong></li>
+</ol>
+<p>Подключается и устанавливается как всегда&nbsp;просто:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo apt-get install -y python-software-properties
+<span class="nv">$ </span>sudo add-apt-repository -y ppa:ubuntu-lxc/stable <span class="c"># или ppa:ubuntu-lxc/daily, если вы точно знаете, что делаете</span>
+<span class="nv">$ </span>sudo apt-get update
+<span class="nv">$ </span>sudo apt-get install -y lxc
+</pre></div>
+
+
+<p>Программа <em>brctl</em> находится в пакете <em>bridge-utils</em>. Программы <em>debootstrap</em>, <em>rpm</em>, <em>yum</em>, <em>pacman</em> содержатся в одноименных&nbsp;контейнерах.</p>
+<h2><span class="caps">OS</span>&nbsp;X</h2>
+<p>Вы можете использовать бесплатный <em>VirtualBox</em> (<a href="https://www.virtualbox.org/wiki/Downloads">загрузить можно тут</a>) для запуска <em>Ubuntu Trusty</em> (<a href="http://releases.ubuntu.com/14.04/ubuntu-14.04.1-server-amd64.iso">скачать с сайта Canonical</a>).</p>
+<p>Если вы используете <em>Vagrant</em> (<a href="https://www.vagrantup.com/">или захотите его использовать</a>) то просто скопируйте этот листинг в файл с именем Vagrantfile и запустите в&nbsp;терминале:</p>
+<div class="highlight"><pre><span class="nv">$ </span>vagrant up
+</pre></div>
+
+
+<p>Листинг&nbsp;Vagrantfile:</p>
+<div class="highlight"><pre><span class="no">VAGRANTFILE_API_VERSION</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+
+<span class="no">Vagrant</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="no">VAGRANTFILE_API_VERSION</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="s2">&quot;utopic64&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box_url</span> <span class="o">=</span> <span class="s2">&quot;http://files.vagrantup.com/utopic64.box&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="ss">:shell</span><span class="p">,</span> <span class="ss">:inline</span> <span class="o">=&gt;</span> <span class="s2">&quot;apt-get update -qq &amp;&amp; apt-get install -yqq lxc bridge-utils&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="ss">:private_network</span><span class="p">,</span> <span class="ss">ip</span><span class="p">:</span> <span class="s2">&quot;10.0.4.2&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="ss">:public_network</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p>Остальную работу за вас сделает <em>Vagrant</em>. Спустя несколько минут вы можете выполнить эту команду, что бы оказаться внутри полностью настроенной системы с установленным <span class="caps">LXC</span>:</p>
+<div class="highlight"><pre><span class="nv">$ </span>vagrant ssh
+</pre></div>
+
+
+<p>Именно так и поступают некторые разработчики в <a href="http://conjur.net">Conjur</a>, использующие <em><span class="caps">OS</span> X</em>.</p>
+<h2>После&nbsp;установки</h2>
+<p>Запустив программу <code>lxc-checkconfig</code>, вы можете убедится в том, что всё работает как нужно. В данном случае везде будет зеленое слово <strong>enabled</strong>:</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">lxc</span><span class="o">-</span><span class="n">checkconfig</span> 
+<span class="n">Kernel</span> <span class="n">configuration</span> <span class="k">not</span> <span class="n">found</span> <span class="n">at</span> <span class="o">/</span><span class="n">proc</span><span class="o">/</span><span class="n">config</span><span class="p">.</span><span class="n">gz</span><span class="err">;</span> <span class="n">searching</span><span class="p">...</span>
+<span class="n">Kernel</span> <span class="n">configuration</span> <span class="n">found</span> <span class="n">at</span> <span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">config</span><span class="o">-</span><span class="mf">3.19</span><span class="p">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">031900r</span><span class="n">c6</span><span class="o">-</span><span class="n">generic</span>
+<span class="o">---</span> <span class="n">Namespaces</span> <span class="o">---</span>
+<span class="n">Namespaces</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Utsname</span> <span class="n">namespace</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Ipc</span> <span class="n">namespace</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Pid</span> <span class="n">namespace</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">User</span> <span class="n">namespace</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Network</span> <span class="n">namespace</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Multiple</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span> <span class="n">instances</span><span class="p">:</span> <span class="n">enabled</span>
+
+<span class="o">---</span> <span class="n">Control</span> <span class="n">groups</span> <span class="o">---</span>
+<span class="n">Cgroup</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">clone_children</span> <span class="n">flag</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">device</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">sched</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">cpu</span> <span class="n">account</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">memory</span> <span class="n">controller</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Cgroup</span> <span class="n">cpuset</span><span class="p">:</span> <span class="n">enabled</span>
+
+<span class="o">---</span> <span class="n">Misc</span> <span class="o">---</span>
+<span class="n">Veth</span> <span class="n">pair</span> <span class="n">device</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Macvlan</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Vlan</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">File</span> <span class="n">capabilities</span><span class="p">:</span> <span class="n">enabled</span>
+
+<span class="n">Note</span> <span class="p">:</span> <span class="n">Before</span> <span class="n">booting</span> <span class="n">a</span> <span class="k">new</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">you</span> <span class="n">can</span> <span class="n">check</span> <span class="n">its</span> <span class="n">configuration</span>
+<span class="n">usage</span> <span class="p">:</span> <span class="n">CONFIG</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="k">to</span><span class="o">/</span><span class="n">config</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">lxc</span><span class="o">-</span><span class="n">checkconfig</span>
+</pre></div>
+
+
+<p>Так же в системе появится новый сетевой интерфейс, который будет объединять все контейнеры наподобие железного свитча и выпускать их в&nbsp;интернет:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo ifconfig <span class="p">|</span> grep lxc
+lxcbr0    Link encap:Ethernet  HWaddr e2:0a:c8:95:d0:b3
+</pre></div>
+
+
+<h1>Перед тем, как&nbsp;начать</h1>
+<p><em>Первая вещь</em>, которую вам вам нужно узнать о <em><span class="caps">LXC</span></em> это то, что он хранит файлы контейнера просто в директории <code>/var/lib/lxc/&lt;container-name&gt;</code>, которая обычно&nbsp;содержит:</p>
+<ul>
+<li><strong>rootfs</strong> &#8212; просто директория, содержит <em>файлы гостевой ОС</em><sup id="fnref:rootfs"><a class="footnote-ref" href="#fn:rootfs" rel="footnote">5</a></sup>;</li>
+<li><strong>config</strong> &#8212; конфигурационный файл контейнера<sup id="fnref:config"><a class="footnote-ref" href="#fn:config" rel="footnote">6</a></sup>;</li>
+<li><strong>fstab</strong> &#8212; содержит информацию что куда монтировать в <em>формате fstab</em><sup id="fnref:fstab"><a class="footnote-ref" href="#fn:fstab" rel="footnote">7</a></sup>.</li>
+</ul>
+<p><em>Вторая вещь</em>, которую вам вам нужно узнать это основной рабочий процесс создания контейнеров. Подчиняется такому простому&nbsp;шаблону:</p>
+<ul>
+<li>создать новый <em><span class="caps">LXC</span></em> <em>контейнер</em>, используя&nbsp;шаблон;</li>
+<li>установить программное обеспечение внутрь контейнера и настроить&nbsp;его;</li>
+<li>клонировать контейнер для создания &#8220;замороженной&#8221; копии (не путать с <code>lxc-freeze</code>). По сути, это операция не делает ничего, кроме копирования файловой системы контейнера из <code>/var/lib/lxc/&lt;new-container&gt;/rootfs</code>;</li>
+<li>когда вы получите готовый контейнер, просто создайте из него tar.bz2 архив. Потом он может быть запущен на другом&nbsp;сервере.</li>
+</ul>
+<h1>Основы</h1>
+<p>Наконец-то, создаем первый&nbsp;контейнер:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-create -t ubuntu -n ubuntu-01
+</pre></div>
+
+
+<p>В первый раз это затянется минут на пять, так как <code>lxc-create</code> запустит шаблон <code>ubuntu</code>, который соберёт новый контейнер и скопирует его в папку <code>/var/lib/lxc/ubuntu-01</code>. <em><span class="caps">LXC</span></em> обычно использует <code>/var/lib/lxc/</code> для хранения контейнеров, <code>/var/cache/lxc/</code> использует как место для кеша (главным образом используется программой <code>lxc-create</code> и&nbsp;шаблонами).</p>
+<p>Давайте скорее его запустим (логин и пароль <code>ubuntu</code>):</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-start -n ubuntu-01
+</pre></div>
+
+
+<p>Обратите внимание на то, что гостевая ОС имеет свой <em>init процесс</em>, так же там есть запущенный <em>sshd</em> и она, в общем-то, не сильно отличается от запущенной где нибудь на <em><span class="caps">EC2</span></em>. Запустив <code>ifconfig</code> вы увидите, что у контейнера есть сетевой интерфейс с настроенным по <em><span class="caps">DHCP</span></em> адресом &#8212; это поведение по умолчанию, поэтому вам не нужно беспокоится о адресах для&nbsp;контейнера.</p>
+<p>Вернутся обратно из контейнера в ваш шелл, получится только завершением работы контейнера, а этого достичь можно двумя&nbsp;способами:</p>
+<ol>
+<li>выполнить команду выключения в контейнере: <code>sudo shutdown -h now</code></li>
+<li>закрыть окно&nbsp;консоли.</li>
+</ol>
+<p>Это случилось потому что вы запустили контейнер без использования ключа <code>-d</code>. <em><span class="caps">LXC</span></em> не позволяет отсоединится (detach) от контейнера, если он был запущен не в&nbsp;фоне.</p>
+<h2>Шаблоны</h2>
+<p><em>Шаблоны</em> &#8212; это просто исполняемый файл, написанный на bash (но не обязательно), создающий <em>rootfs</em> для контейнера, остальную работу по созданию контейнера берет на себя <code>lxc-create</code>. Имейте ввиду, что для работы многих шаблонов нужны дополнительные программы, о которых было сказано в начале статьи. Шаблоны можно найти в <code>/usr/share/lxc/templates</code>.</p>
+<p>На данный момент существуют и поддерживаются <em>шаблоны</em> для <em>Alpine Linux</em>, <em><span class="caps">ALT</span> Linux</em>, <em>Arch Linux</em>, <em>CentOS</em>, <em>CirrOS</em>, <em>Debian</em>, <em>Fedora</em>, <em>Gentoo</em>, <em>OpenMandriva</em>, <em>OpenSUSE</em>, <em>Oracle Linux</em>, <em>Plamo Linux</em>, <em>Ubuntu</em>. Среди шаблонов можно также найти несколько&nbsp;необычных:</p>
+<ul>
+<li><strong>busybox</strong> &#8212; шаблон, создающий минималистический легковесный контейнер, в котором установлен только <em>busybox</em>;</li>
+<li><strong>sshd</strong> &#8212; обычно используется для того, чтобы пустить гостей в вашу приватную&nbsp;сеть;</li>
+<li><strong>ubuntu-cloud</strong> &#8212; шаблон загружает из https://cloud-images.ubuntu.com/ образ, собранный <em>Cannonical</em>, распаковывает и модифицирует для работы в <em><span class="caps">LXC</span></em>;</li>
+<li><strong>download</strong> &#8212; команда разработчиков <em><span class="caps">LXC</span></em> собирает образы дистрибутивов, главным образом приспособленных для работы в контейнерах, которые запущены от имени непривилегированных&nbsp;пользователей.</li>
+</ul>
+<p>Почти все шаблоны обладают дополнительными опциями, которые можно узнать по ключу <code>--help</code> после вызова <code>lxc-create</code>. Используйте <code>--</code> для разделения опций <code>lxc-create</code> и опций <em>шаблона</em>:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-create -t ubuntu -n ubuntu-02 -- --help
+/usr/share/lxc/templates/lxc-ubuntu -h<span class="p">|</span>--help <span class="o">[</span>-a<span class="p">|</span>--arch<span class="o">]</span> <span class="o">[</span>-b<span class="p">|</span>--bindhome &lt;user&gt;<span class="o">]</span> <span class="o">[</span>-d<span class="p">|</span>--debug<span class="o">]</span>
+   <span class="o">[</span>-F <span class="p">|</span> --flush-cache<span class="o">]</span> <span class="o">[</span>-r<span class="p">|</span>--release &lt;release&gt;<span class="o">]</span> <span class="o">[</span> -S <span class="p">|</span> --auth-key &lt;keyfile&gt;<span class="o">]</span>
+   <span class="o">[</span>--rootfs &lt;rootfs&gt;<span class="o">]</span> <span class="o">[</span>--packages &lt;packages&gt;<span class="o">]</span> <span class="o">[</span>-u<span class="p">|</span>--user &lt;user&gt;<span class="o">]</span> <span class="o">[</span>--password &lt;password&gt;<span class="o">]</span>
+   <span class="o">[</span>--mirror &lt;url&gt;<span class="o">]</span> <span class="o">[</span>--security-mirror &lt;url&gt;<span class="o">]</span>
+</pre></div>
+
+
+<h2>Копаем&nbsp;глубже</h2>
+<p>Давайте сделаем контейнер с <em>Ubuntu Saucy</em> с архитектурой <em>i386</em>:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-create -t ubuntu -n ubuntu-03 -- --release saucy --arch i386
+</pre></div>
+
+
+<p>Пока контейнер создаётся, отвечу на возникший вопрос: а может ли <em><span class="caps">LXC</span></em> запускать контейнеры с архитектурой отличной от <em>x64</em> и <em>і386</em>? Может: например, <em><span class="caps">ARM</span></em> используя <em>qemu</em> (user space <span class="caps">CPU</span> emulation &#8212; qemu-user-static). К сожалению, это работает очень&nbsp;медленно.</p>
+<p>В этот раз запустим контейнер с ключом <code>-d</code>:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-start -d -n ubuntu-03
+</pre></div>
+
+
+<p>Команда выполнится за мгновение &#8212; контейнер начнет загружаться в фоне. Отслеживать этот процесс можно используя команду <code>lxc-ls</code>:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-ls -f
+NAME              STATE    IPV4  IPV6  GROUPS  AUTOSTART  
+--------------------------------------------------------  
+ubuntu-01         STOPPED  -     -     -       NO         
+ubuntu-03         RUNNING  -     -     -       NO 
+</pre></div>
+
+
+<p>Без опции <code>-f</code> (<code>--fancy</code>) программа <code>lxc-ls</code> просто выводит список контейнеров, которые у вас есть. Как вы могли заметить, каждый контейнер имеет статус, а используя опции <code>--running</code> или <code>--stopped</code> можно вывести на печатать только работающие или остановленные&nbsp;контейнеры.</p>
+<h2>Получаем доступ к&nbsp;контейнеру</h2>
+<p>Что бы попасть внутрь контейнера у вас есть несколько опций, а&nbsp;именно:</p>
+<ol>
+<li>использовать <strong>lxc-console</strong>;</li>
+<li>залогинится через <strong>ssh</strong>;</li>
+<li>запустить bash внутри контейнера используя <strong>lxc-attach</strong>.</li>
+</ol>
+<p>Разница в основном заключается в двух вещах: от куда вы можете получить доступ внутрь контейнера и будете ли вы иметь возможность управлять тем, как программы будут исполнены внутри&nbsp;контейнера.</p>
+<h3>lxc-console</h3>
+<p>Давайте начнем с <code>lxc-console</code>, используйте <code>Ctrl+A Q</code> для выхода из контейнера (логин и пароль <code>ubuntu</code>):</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-console -n ubuntu-03
+</pre></div>
+
+
+<p>По сути, программа <code>lxc-console</code> создаёт <em>виртуальную косоль</em>, почти такую же, какую вы можете получить по нажатию <code>Ctrl+Alt+F1</code> в вашем <em>Linux</em>.</p>
+<h3>Доступ через <span class="caps">SSH</span></h3>
+<p>Тоже самое можно сделать и с помощью <em>ssh</em>, только сначало нужно узнать куда подключаться. Узнать <em><span class="caps">IP</span> адрес</em> контейнера можно используя <code>lxc-ls -f</code> или же другую программу: <code>lxc-info</code>. <code>sudo lxc-info -iH -n ubuntu-03</code> просто напечатает все адреса принадлежащие контейнеру. Давайте используем&nbsp;это:</p>
+<div class="highlight"><pre><span class="nv">$ </span>ssh ubuntu@<span class="k">$(</span>lxc-info -iH -n ubuntu-03 <span class="p">|</span> head -n1<span class="k">)</span>
+</pre></div>
+
+
+<p>Вот вы снова попали внутрь контейнера. Поздравляю, половина пути&nbsp;пройдена.</p>
+<h3>lxc-attach</h3>
+<p>Следующая программа в списке <code>lxc-attach</code> позволяет присоединится (attach) к контейнеру и дать вам шелл внутри этого&nbsp;контейнера:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-attach -n ubuntu-03
+</pre></div>
+
+
+<p>Учтите, что если команда не указана, то будет запущен шелл по умолчанию для пользователя от имени которого вы работаете. Если такого пользователя нет в контейнере, то по этой причине вы получите сообщение об&nbsp;ошибке.</p>
+<p>Можно просто запустутить&nbsp;команду:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-attach -n ubuntu-03 -- id
+<span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>
+<span class="c"># или же даже так</span>
+<span class="nv">$ </span>sudo lxc-attach -n ubuntu-03 -- bash -c <span class="s1">&#39;id&#39;</span>
+<span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>
+</pre></div>
+
+
+<p>По умолчанию все переменные окружения будут переданы в запущенную программу внутри контейнера (<code>--keep-env</code>). По вполне понятным причинам вы можете не захотеть этого делать, тогда используйте опцию <code>--clear-env</code> когда запускаете <code>lxc-attach</code>. В таком случае будет передана только одна переменная окружения &#8212; <code>container=lxc</code>.</p>
+<p>Но это еще не все: <code>lxc-attach</code> позволяем вам указать к каким <code>namespaces</code> подключатся внутри контейнера <code>-s</code> (<code>--namespaces</code>) и позволяет не сбрасывать привилегии при запуске <code>-e</code> (<code>--elevated-privileges</code>), правда использование этой опции отключит так же <code>cgroup</code>, <code>apparmor</code> для запущенного процесса. Выполнив эту команду вы получите шелл имеющий доступ к сетевому интерфейсу контейнера, но работающий как бы вне&nbsp;контейнера:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-attach -n p1 -e -s <span class="s1">&#39;NETWORK|UTSNAME&#39;</span>
+</pre></div>
+
+
+<p>Имейте ввиду, что нужно быть осторожным. Но время от времени, может понадобиться запускать программы, которые работают в хост системе, но расположены внутри контейнера с его сетью и или другим <em>namespace</em>.</p>
+<h2>Завершение жизненного цикла&nbsp;контейнера</h2>
+<p>С помощью команды <code>lxc-stop</code> можно остановить выполнение&nbsp;контейнера:</p>
+<div class="highlight"><pre># корректная остановка контейнера из хоста
+$ sudo lxc-stop -n ubuntu-03 
+# Грубое убийство контейнера из хоста
+$ sudo lxc-stop -n ubuntu-03 -k 
+</pre></div>
+
+
+<p>А после того, как контейнер перестал быть нужен вам, просто удалите его используя <code>lxc-destroy</code>:</p>
+<div class="highlight"><pre># если контейнер уже остановлен
+$ sudo lxc-destroy -n ubuntu-03
+# есил контейнер еще работает, -f опция попытается его остановить
+$ sudo lxc-destroy -n ubuntu-03 -f
+</pre></div>
+
+
+<h2>Клонирование&nbsp;контейнеров</h2>
+<p>Клонирование контейнеров часто востребованная операция, выполняется с помощью программы <code>lxc-clone</code>. Она имеет не очень очевидные параметры, а именно <code>-o</code> (<code>--orig</code>) задает имя контейнера, который будет скопирован, а <code>-n</code> (<code>--new</code>) имя нового контейнера. Представим, что у вас уже есть контейнер с каким то установленным и настроенным программным обеспечением и вы хотите его&nbsp;склонировать:</p>
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-clone -o nginx-slave-01 -n nginx-slave-02
+</pre></div>
+
+
+<p>Через некоторое время вы получите копию родительского&nbsp;контейнера.</p>
+<p>Moving containers between hosts
+We’re using simple tar.bz2 archive to share container data between servers and people:
+$ sudo tar -cjf container.tar.bz2 /var/lib/lxc/<container-name>
+$ # put archive to s3 or scp to somewhere
+$ # and once you need to roll it to server - just unarchive
+$ cd / &amp;&amp; tar -xjf&nbsp;container.tar.bz2</p>
+<p>Of course container must be stopped before that operation in proper way (i.e. services must be shutdowned correctly, otherwise you risk get corrupted data). Think of this that like you doing full <span class="caps">OS</span> backup for moving to a another hard drive. Of course you may have to clone it after unpacking or modify container’s config file, if <span class="caps">LXC</span> paths are different.
+Container configuration
+Each container have configuration file stored in /var/lib/lxc/<container-name>/config. <span class="caps">LXC</span> configuration is split in two parts: container and system configuration. Most important settings&nbsp;are:</p>
+<p>lxc.rootfs - specify the root file system path for the container
+lxc.mount - specify a file location in fstab format, containing the mount information
+lxc.utsname - specify the hostname of the container
+lxc.arch - specify the arch for the container
+lxc.network.* - specify various network related options for the&nbsp;container</p>
+<p>Other options have reasonable default values setted by developers. You can find them by search lxc.include directive in the container config file.
+Container autostarting
+If you want have to start your container at boot time, just put these lines into the container&nbsp;config:</p>
+<h1>the container should be auto-started (0 mean&nbsp;off)</h1>
+<p>lxc.start.auto =&nbsp;1</p>
+<h1>how long to wait in seconds before starting the next&nbsp;one</h1>
+<p>lxc.start.delay =&nbsp;5</p>
+<h1>an integer used to sort containers when&nbsp;auto-started</h1>
+<h1>a serie of containers at&nbsp;once</h1>
+<p>lxc.start.order = 100
+Sharing data between host system and a container
+You can bind any directory inside containers. This allows to you share data between your host and containers. For example, you created folder for storing Redis database files outside your&nbsp;container:</p>
+<p>$ sudo mkdir -p&nbsp;/opt/containers/redis-01</p>
+<h1>bind /opt/containers/redis-01 to&nbsp;/var/lib/lxc/redis-01/rootfs/var/lib/redis</h1>
+<p>$ echo &#8220;/opt/containers/redis-01\t/var/lib/lxc/redis-01/rootfs/var/lib/redis\tnone\tbind\t0\t0&#8221; | sudo tee &#8212;append /var/lib/lxc/redis-01/fstab &gt; /dev/null
+$ # start container and you will find that the redis server database will be stored inside /opt/containers/redis-01&nbsp;directory</p>
+<p>In that way you can share one directory between two or more containers. Just have in mind: better to make read-only bind in this case (just add ro to mount options). You really don’t want to have situation when multiple processes write to a one file at same&nbsp;time.</p>
+<p>What if you want to share data between containers running on different hosts you may use any distributed network file systems like <span class="caps">NFS</span> or other available.
+Few words, if you want to use Iptables inside a container
+If you tried to install iptables package inside the container, probably that will be ended with errors and that&nbsp;why:</p>
+<p>kernel module ip6table_filter is not inserted into running kernel
+/lib/modules in the container is&nbsp;empty</p>
+<p>To solve this problems just run on&nbsp;host:</p>
+<h1>bind host’s /lib/modules path to the&nbsp;container</h1>
+<p>$ echo &#8220;/lib/modules\t/var/lib/lxc/<container-name>/lib/modules\tnone\tbind\t0\t0&#8221; | sudo tee &#8212;append /var/lib/lxc/<container-name>/fstab &gt;&nbsp;/dev/null</p>
+<h1>insert the kernel&nbsp;module</h1>
+<p>$ sudo modprobe&nbsp;ip6table_filter</p>
+<h1>and adds it to load on&nbsp;boot</h1>
+<p>$ echo &#8216;ip6table_filter&#8217; | sudo tee &#8212;append /etc/modules &gt;&nbsp;/dev/null</p>
+<h1>Что&nbsp;дальше?</h1>
+<p>В этом посте я не написал о следующих интересных вещах в <em><span class="caps">LXC</span></em> (хорошие темы для будующих постов про <em><span class="caps">LXC</span></em>, некоторые технологии мы уже используем в <a href="http://conjur.net">Conjur</a>):</p>
+<ul>
+<li>Running nested&nbsp;containers</li>
+<li>Running Docker containers inside <span class="caps">LXC</span>&nbsp;containers</li>
+<li>Running containers under unprivileged&nbsp;user</li>
+<li>Running <span class="caps">LXC</span> ephemeral&nbsp;containers</li>
+<li>Running <span class="caps">ARM</span>&nbsp;containers</li>
+<li><span class="caps">LXC</span> container lifecycle&nbsp;hooks</li>
+<li>Makefile is new Dockerfile for <span class="caps">LXC</span></li>
+<li>Advanced access control with Apparmor and&nbsp;SELinux</li>
+<li>Advanced network for <span class="caps">LXC</span>: dnsmasq, static addresses,&nbsp;nating</li>
+<li><span class="caps">LXC</span> network: macvlan (and ipvlan soon), vlan, physical&nbsp;device</li>
+<li><span class="caps">LXC</span> networking with&nbsp;OpenVSwitch</li>
+<li>Storing containers data in <span class="caps">LVM</span>, <span class="caps">ZFS</span> or&nbsp;Btrfs</li>
+<li>Snapshotting container’s&nbsp;filesystem</li>
+<li>Options for backup and restore&nbsp;containers</li>
+<li>Freezing and restoring: lxc-freeze and&nbsp;lxc-unfreeze</li>
+<li>Checkpointing and restoring a container with <span class="caps">CRIU</span></li>
+<li>Additional tools for exploring and debugging&nbsp;containers</li>
+</ul>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:namespaces">
+<p>Смотри man page <code>namespaces(7)</code>&#160;<a class="footnote-backref" href="#fnref:namespaces" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:capabilities">
+<p>Смотри man page <code>capabilities(7)</code>&#160;<a class="footnote-backref" href="#fnref:capabilities" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:seccomp">
+<p>Смотри man page <code>seccomp(2)</code>&#160;<a class="footnote-backref" href="#fnref:seccomp" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:bridges">
+<p>Смотри man page <code>bridge(8)</code>&#160;<a class="footnote-backref" href="#fnref:bridges" rev="footnote" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:rootfs">
+<p>Если вы не ипользуете <em><span class="caps">LVM</span></em>, <em>Btrfs</em> или <em>Zfs</em> для хранения данных контейнера&#160;<a class="footnote-backref" href="#fnref:rootfs" rev="footnote" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:config">
+<p>Смотрите man pages <code>lxc.conf(5)</code>, <code>lxc.container.conf(5)</code> и <code>lxc.system.conf(5)</code>&#160;<a class="footnote-backref" href="#fnref:config" rev="footnote" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+<li id="fn:fstab">
+<p>Смотрите на опцию <code>lxc.mount</code> в конфиге контейнера&#160;<a class="footnote-backref" href="#fnref:fstab" rev="footnote" title="Jump back to footnote 7 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>                </article>
+<p class="paginator">
+    Page 1 / 1
+</p>
+            </aside><!-- /#featured -->
+        <section id="extras" class="body">
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="http://asakura.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-60049123-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+</body>
+</html>
