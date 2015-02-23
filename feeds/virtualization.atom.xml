@@ -4,7 +4,7 @@
 &lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не диктует &amp;#8220;единственный правильный способ&amp;#8221; использования контейнерной виртуализации, а раскрывает и позволяет управлять технологиями, на основе которых он построен (ко многим предоставляя удобный интерфейс&amp;nbsp;управления):&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;a href="https://www.kernel.org/doc/Documentation/cgroups/cgroups.txt"&gt;cgroups&lt;/a&gt;&lt;/strong&gt; обеспечивают для групп процессов ограничение и изоляцию физических ресурсов, таких как &lt;em&gt;&lt;span class="caps"&gt;CPU&lt;/span&gt;&lt;/em&gt;, &lt;em&gt;memory&lt;/em&gt;, &lt;em&gt;disk I/O&lt;/em&gt;, &lt;em&gt;network&lt;/em&gt;. &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; создает &lt;em&gt;cgroup&lt;/em&gt; (&lt;em&gt;control group&lt;/em&gt; &amp;#8212; &lt;em&gt;группу управления&lt;/em&gt;) для каждого запущенного контейнера, т.е. вы можете гибко управлять каждым контейнером независимо от&amp;nbsp;другого.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;namespaces&lt;/strong&gt;&lt;sup id="fnref:namespaces"&gt;&lt;a class="footnote-ref" href="#fn:namespaces" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; обеспечивают &lt;em&gt;изоляцию пространств имен ядра&lt;/em&gt; (&lt;em&gt;ipc&lt;/em&gt;, &lt;em&gt;uts&lt;/em&gt;, &lt;em&gt;mount&lt;/em&gt;, &lt;em&gt;pid&lt;/em&gt;, &lt;em&gt;network&lt;/em&gt;, &lt;em&gt;user&lt;/em&gt;), говоря простым языком контенеры не могу воздействовать друг на друга. С пользовательской точки зрения, это выглядит так, что &lt;em&gt;init процес&lt;/em&gt; каждого контейнера имеет &lt;em&gt;&lt;span class="caps"&gt;PID&lt;/span&gt; 1&lt;/em&gt;, а программа &lt;code&gt;ifconfig&lt;/code&gt; показывает только сетевые интерфейсы, которые принадлежат этому контейнеру, где была запущена.
+&lt;li&gt;&lt;strong&gt;namespaces&lt;/strong&gt;&lt;sup id="fnref:namespaces"&gt;&lt;a class="footnote-ref" href="#fn:namespaces" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; обеспечивают &lt;em&gt;изоляцию пространств имен ядра&lt;/em&gt; (&lt;em&gt;ipc&lt;/em&gt;, &lt;em&gt;uts&lt;/em&gt;, &lt;em&gt;mount&lt;/em&gt;, &lt;em&gt;pid&lt;/em&gt;, &lt;em&gt;network&lt;/em&gt;, &lt;em&gt;user&lt;/em&gt;), говоря простым языком контейнеры не могу воздействовать друг на друга. С пользовательской точки зрения, это выглядит так, что &lt;em&gt;init процесс&lt;/em&gt; каждого контейнера имеет &lt;em&gt;&lt;span class="caps"&gt;PID&lt;/span&gt; 1&lt;/em&gt;, а программа &lt;code&gt;ifconfig&lt;/code&gt; показывает только сетевые интерфейсы, которые принадлежат этому контейнеру, где была запущена.
 capabilities обеспечивают контроль над тем, какие привилегированные операции может выполнять&amp;nbsp;процесс.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;a href="http://wiki.apparmor.net/index.php/Main_Page"&gt;Apparmor&lt;/a&gt;&lt;/strong&gt; и &lt;strong&gt;&lt;a href="http://selinuxproject.org/page/Main_Page"&gt;SELinux&lt;/a&gt;&lt;/strong&gt; расширяют традиционную &lt;em&gt;Unix discretionary access control&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;DAC&lt;/span&gt;&lt;/em&gt;) модель моделью &lt;em&gt;mandatory access control&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;MAC&lt;/span&gt;&lt;/em&gt;), главным образом используются для защиты вашей хост системы от того, что вы запускаете в контейнерах. Например, используется для того, что бы определить, какие устройства будут доступны внутри контейнера или какие фичи ядра будут доступны для&amp;nbsp;использования.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;seccomp&lt;/strong&gt;&lt;sup id="fnref:seccomp"&gt;&lt;a class="footnote-ref" href="#fn:seccomp" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt; предоставляет механизм песочницы для приложений, а именно позволяет процессу сделать переход в “безопасный” режим, когда разрешены только системные вызовы на чтение и запись к уже открытым файлам. В последних версиях ядра так же позволяет выбрать какие еще системные вызовы будут доступны для&amp;nbsp;вызова.&lt;/li&gt;
@@ -12,10 +12,10 @@ capabilities обеспечивают контроль над тем, какие
 &lt;h1&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt; и&amp;nbsp;что?&lt;/h1&gt;
 &lt;p&gt;Возможно вы уже знакомы с &lt;em&gt;Docker&lt;/em&gt; и вам интересно зачем вам &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; если у вас уже работает &lt;em&gt;Docker&lt;/em&gt;? Тут есть пара принципиальных нюансов, которые на самом деле всё&amp;nbsp;меняют.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Docker&lt;/em&gt; решение для запуска контейнеров с одним запущенным приложением (процессом). Docker не выступает в качестве легковесной виртуальной машины и не может считаться таким, так как его контейнеры умышленно ограничены одним&amp;nbsp;процессом.&lt;/p&gt;
-&lt;p&gt;С другой стороны контейнеры &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не имеют таких ограничений и выступают в роли виртуальной машины: вы можете установить вашу собственную операционную систему, залогинится, установить приложения и сервисы и это все будет работать так, как вы этого и ожидаете. Контейнеры имеют настоящий &lt;em&gt;init процесс&lt;/em&gt;, запущенные сервисы и системные&amp;nbsp;демоны.&lt;/p&gt;
+&lt;p&gt;С другой стороны контейнеры &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; не имеют таких ограничений и выступают в роли виртуальной машины: вы можете установить вашу собственную операционную систему, залогиниться, установить приложения и сервисы и это все будет работать так, как вы этого и ожидаете. Контейнеры имеют настоящий &lt;em&gt;init процесс&lt;/em&gt;, запущенные сервисы и системные&amp;nbsp;демоны.&lt;/p&gt;
 &lt;h1&gt;Установка&lt;/h1&gt;
 &lt;p&gt;В современных дистрибутивах, таких как &lt;em&gt;Ubuntu Trusty&lt;/em&gt; (14.04), &lt;em&gt;Utopic&lt;/em&gt; (14.10) или новее, &lt;em&gt;Debian Jessie&lt;/em&gt;, поставляется стабильная 1.х версия &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;. Можно ставить прямо из репозитория и начинать использовать. Отдельно стоит упомянуть пользователей &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;: &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, как и &lt;em&gt;Docker&lt;/em&gt;, не поддерживает и не будет поддерживать эту операционную систему, так как для своей работы использует технологии, реализованные только в &lt;em&gt;ядре Linux&lt;/em&gt;. Поэтому вам придется использовать одну из полновесных виртуальных машин для запуска одного из современных дистрибутивов. Возможно, что некоторые пользователи &lt;em&gt;Linux&lt;/em&gt; захотят использовать подход, рекомендованный пользователям &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;Контейнеры собираются &lt;em&gt;шаблонами&lt;/em&gt;, которые на самом деле просто программы. Если программа использует дополнительное программое обеспечение, то вам придется установить его или иначе шаблон не будет работать. Например, вам могут понадобится эти программы для работы большинства&amp;nbsp;шаблонов:&lt;/p&gt;
+&lt;p&gt;Контейнеры собираются &lt;em&gt;шаблонами&lt;/em&gt;, которые на самом деле просто программы. Если программа использует дополнительное программное обеспечение, то вам придется установить его или иначе шаблон не будет работать. Например, вам могут понадобится эти программы для работы большинства&amp;nbsp;шаблонов:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Bridge utils&lt;/strong&gt; (а именно утилита &lt;em&gt;brctl&lt;/em&gt;) для управления &lt;em&gt;Linux bridges&lt;/em&gt;&lt;sup id="fnref:bridges"&gt;&lt;a class="footnote-ref" href="#fn:bridges" rel="footnote"&gt;4&lt;/a&gt;&lt;/sup&gt;;&lt;/li&gt;
 &lt;li&gt;Программа &lt;strong&gt;Debootstrap&lt;/strong&gt; для установки системы основанной на &lt;em&gt;Debian&lt;/em&gt; из уже работающей ОС, понадобится, если вы решите использовать шаблон для создания контейнера с &lt;em&gt;Ubuntu&lt;/em&gt; или &lt;em&gt;Debian&lt;/em&gt;;&lt;/li&gt;
@@ -69,7 +69,7 @@ capabilities обеспечивают контроль над тем, какие
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Именно так и поступают некторые разработчики в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;, использующие &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Именно так и поступают некоторые разработчики в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;, использующие &lt;em&gt;&lt;span class="caps"&gt;OS&lt;/span&gt; X&lt;/em&gt;.&lt;/p&gt;
 &lt;h2&gt;После&amp;nbsp;установки&lt;/h2&gt;
 &lt;p&gt;Запустив программу &lt;code&gt;lxc-checkconfig&lt;/code&gt;, вы можете убедится в том, что всё работает как нужно. В данном случае везде будет зеленое слово &lt;strong&gt;enabled&lt;/strong&gt;:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;lxc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;checkconfig&lt;/span&gt; 
@@ -187,7 +187,7 @@ ubuntu-03         RUNNING  -     -     -       NO
 &lt;p&gt;Что бы попасть внутрь контейнера у вас есть несколько опций, а&amp;nbsp;именно:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;использовать &lt;strong&gt;lxc-console&lt;/strong&gt;;&lt;/li&gt;
-&lt;li&gt;залогинится через &lt;strong&gt;ssh&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;залогиниться через &lt;strong&gt;ssh&lt;/strong&gt;;&lt;/li&gt;
 &lt;li&gt;запустить bash внутри контейнера используя &lt;strong&gt;lxc-attach&lt;/strong&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;Разница в основном заключается в двух вещах: от куда вы можете получить доступ внутрь контейнера и будете ли вы иметь возможность управлять тем, как программы будут исполнены внутри&amp;nbsp;контейнера.&lt;/p&gt;
@@ -197,9 +197,9 @@ ubuntu-03         RUNNING  -     -     -       NO
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;По сути, программа &lt;code&gt;lxc-console&lt;/code&gt; создаёт &lt;em&gt;виртуальную косоль&lt;/em&gt;, почти такую же, какую вы можете получить по нажатию &lt;code&gt;Ctrl+Alt+F1&lt;/code&gt; в вашем &lt;em&gt;Linux&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;По сути, программа &lt;code&gt;lxc-console&lt;/code&gt; создаёт &lt;em&gt;виртуальную консоль&lt;/em&gt;, почти такую же, какую вы можете получить по нажатию &lt;code&gt;Ctrl+Alt+F1&lt;/code&gt; в вашем &lt;em&gt;Linux&lt;/em&gt;.&lt;/p&gt;
 &lt;h3&gt;Доступ через &lt;span class="caps"&gt;SSH&lt;/span&gt;&lt;/h3&gt;
-&lt;p&gt;Тоже самое можно сделать и с помощью &lt;em&gt;ssh&lt;/em&gt;, только сначало нужно узнать куда подключаться. Узнать &lt;em&gt;&lt;span class="caps"&gt;IP&lt;/span&gt; адрес&lt;/em&gt; контейнера можно используя &lt;code&gt;lxc-ls -f&lt;/code&gt; или же другую программу: &lt;code&gt;lxc-info&lt;/code&gt;. &lt;code&gt;sudo lxc-info -iH -n ubuntu-03&lt;/code&gt; просто напечатает все адреса принадлежащие контейнеру. Давайте используем&amp;nbsp;это:&lt;/p&gt;
+&lt;p&gt;Тоже самое можно сделать и с помощью &lt;em&gt;ssh&lt;/em&gt;, только сначала нужно узнать куда подключаться. Узнать &lt;em&gt;&lt;span class="caps"&gt;IP&lt;/span&gt; адрес&lt;/em&gt; контейнера можно используя &lt;code&gt;lxc-ls -f&lt;/code&gt; или же другую программу: &lt;code&gt;lxc-info&lt;/code&gt;. &lt;code&gt;sudo lxc-info -iH -n ubuntu-03&lt;/code&gt; просто напечатает все адреса принадлежащие контейнеру. Давайте используем&amp;nbsp;это:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;ssh ubuntu@&lt;span class="k"&gt;$(&lt;/span&gt;lxc-info -iH -n ubuntu-03 &lt;span class="p"&gt;|&lt;/span&gt; head -n1&lt;span class="k"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -212,7 +212,7 @@ ubuntu-03         RUNNING  -     -     -       NO
 
 
 &lt;p&gt;Учтите, что если команда не указана, то будет запущен шелл по умолчанию для пользователя от имени которого вы работаете. Если такого пользователя нет в контейнере, то по этой причине вы получите сообщение об&amp;nbsp;ошибке.&lt;/p&gt;
-&lt;p&gt;Можно просто запустутить&amp;nbsp;команду:&lt;/p&gt;
+&lt;p&gt;Можно просто запустить&amp;nbsp;команду:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-attach -n ubuntu-03 -- id
 &lt;span class="nv"&gt;uid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;gid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;groups&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0&lt;span class="o"&gt;(&lt;/span&gt;root&lt;span class="o"&gt;)&lt;/span&gt;
 &lt;span class="c"&gt;# или же даже так&lt;/span&gt;
@@ -246,14 +246,73 @@ $ sudo lxc-destroy -n ubuntu-03 -f
 
 
 &lt;h2&gt;Клонирование&amp;nbsp;контейнеров&lt;/h2&gt;
-&lt;p&gt;Клонирование контейнеров часто востребованная операция, выполняется с помощью программы &lt;code&gt;lxc-clone&lt;/code&gt;. Она имеет не очень очевидные параметры, а именно &lt;code&gt;-o&lt;/code&gt; (&lt;code&gt;--orig&lt;/code&gt;) задает имя контейнера, который будет скопирован, а &lt;code&gt;-n&lt;/code&gt; (&lt;code&gt;--new&lt;/code&gt;) имя нового контейнера. Представим, что у вас уже есть контейнер с каким то установленным и настроенным программным обеспечением и вы хотите его&amp;nbsp;склонировать:&lt;/p&gt;
+&lt;p&gt;Клонирование контейнеров часто востребованная операция, выполняется с помощью программы &lt;code&gt;lxc-clone&lt;/code&gt;. Она имеет не очень очевидные параметры, а именно &lt;code&gt;-o&lt;/code&gt; (&lt;code&gt;--orig&lt;/code&gt;) задает имя контейнера, который будет скопирован, а &lt;code&gt;-n&lt;/code&gt; (&lt;code&gt;--new&lt;/code&gt;) имя нового контейнера. Представим, что у вас уже есть контейнер с каким то установленным и настроенным программным обеспечением и вы хотите его&amp;nbsp;клонировать:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo lxc-clone -o nginx-slave-01 -n nginx-slave-02
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Через некоторое время вы получите копию родительского&amp;nbsp;контейнера.&lt;/p&gt;
+&lt;h2&gt;Перемещение контейнеров между&amp;nbsp;хостами&lt;/h2&gt;
+&lt;p&gt;Мы в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt; используем простой tar.bz2 архив для того, что бы распространять контейнеры между серверами и&amp;nbsp;людьми:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo tar -cjf container.tar.bz2 /var/lib/lxc/&amp;lt;container-name&amp;gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="c"&gt;# загрузите его в S3 или еще куда нибудь&lt;/span&gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="c"&gt;# потом скачайте и распакуйте&lt;/span&gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; / &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; tar -xjf container.tar.bz2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Разумеется контейнер должен быть правильно остановлен (т.е. сервисы должны быть остановлены корректно, иначе есть риск получить испорченные данные), перед тем, как делать архив. Думайте об этом, как о полном бэкапе всей ОС для переноса на другой жесткий диск. Так же разумеется, что вероятно придется клонировать этот контейнер или исправлять конфигурационный файл после переноса (в случае, если вы ну очень сильно изменили Конфигурацию &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; на хосте, куда&amp;nbsp;переносите).&lt;/p&gt;
+&lt;h2&gt;Конфигурация&amp;nbsp;контейнера&lt;/h2&gt;
+&lt;p&gt;Каждый контейнер имеет конфигурационный файл хранящийся в &lt;code&gt;/var/lib/lxc/&amp;lt;container-name&amp;gt;/config&lt;/code&gt;. Конфигурация в &lt;span class="caps"&gt;LXC&lt;/span&gt; разбита на две части: конфигурация контейнера и системы. Наиболее важные настройки контейнера&amp;nbsp;это:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;lxc.rootfs&lt;/strong&gt; &amp;#8212; указывает путь до файловой системы&amp;nbsp;контейнера;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;lxc.mount&lt;/strong&gt; &amp;#8212; указывает путь до fstab файла контейнера, содержит информацию о том, какие и куда файловые системы&amp;nbsp;монтировать;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;lxc.utsname&lt;/strong&gt; &amp;#8212; указывает имя хоста&amp;nbsp;контейнера;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;lxc.arch&lt;/strong&gt; &amp;#8212; какую архитектуру имеет&amp;nbsp;контейнер;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;lxc.network.*&lt;/strong&gt; &amp;#8212; указывают какие сетевые настройки будет иметь&amp;nbsp;контейнер.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Другие опции заданы разработчиками и имеют вполне разумные значения по умолчанию. Вы можете найти их, если откроете файл указанный в опции &lt;code&gt;lxc.include&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Авто-запуск&amp;nbsp;контейнеров&lt;/h2&gt;
+&lt;p&gt;Если вы хотите, что бы ваш контейнер запускался при старте системы автоматически, то просто добавьте эти опции в конфигурационный файл вашего&amp;nbsp;контейнера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;# должен ли контейнер быть запущен автоматически (0 значит, что не должен)
+lxc.start.auto = 1
+# сколько ждать в секундах, перед тем, как запускать следующий контейнер в очереди
+lxc.start.delay = 5
+# просто число, используется для организации очереди при запуске нескольких контейнеров
+lxc.start.order = 100
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Обмен данными между контейнером и&amp;nbsp;хостом&lt;/h2&gt;
+&lt;p&gt;Вы можете примонтировать в внутрь контейнера что угодно. Это позволяет вам организовать обмен данными между хостом и контейнерами. Например, вы создаете директорию на хосте для хранения базы данных &lt;em&gt;Redis&lt;/em&gt;, которая будет запущена внутри&amp;nbsp;контейнера: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;sudo mkdir -p /opt/containers/redis-01
+&lt;span class="c"&gt;# bind mount /opt/containers/redis-01 to /var/lib/lxc/redis-01/rootfs/var/lib/redis&lt;/span&gt;
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/opt/containers/redis-01\t/var/lib/lxc/redis-01/rootfs/var/lib/redis\tnone\tbind\t0\t0&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sudo tee --append /var/lib/lxc/redis-01/fstab &amp;gt; /dev/null
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="c"&gt;# запускаете контейнер и вуаля - теперь база хранится в /opt/containers/redis-01&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Таким образом, вы можете организовать обмен данными между несколькими контейнерами. Но учтите, что в данном случае лучше использовать опции при монтировании только на чтение. Вы же не хотите, что бы разные контейнеры начали писать в один и тот же файл&amp;nbsp;:)&lt;/p&gt;
+&lt;p&gt;Можно пойти дальше и использовать &lt;span class="caps"&gt;NFS&lt;/span&gt;, для того, что бы разделять данные между контейнерами запущенными на разных&amp;nbsp;хостах.&lt;/p&gt;
+&lt;h3&gt;Пару слов, тем, кто захочет запустить Iptables в&amp;nbsp;контейнере&lt;/h3&gt;
+&lt;p&gt;Если вы попробуете поставить пакет &lt;em&gt;iptables&lt;/em&gt; внутри контейнера, то скорее всего вы получите ошибку и вот&amp;nbsp;почему:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;модуль ядра &lt;strong&gt;ip6table_filter&lt;/strong&gt; не&amp;nbsp;загружен;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/lib/modules&lt;/code&gt; в контейнере&amp;nbsp;отсутствуют.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Для решения этой проблемы просто выполните на&amp;nbsp;хосте:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;# bind mount host’s /lib/modules path to the container
+$ echo &amp;quot;/lib/modules\t/var/lib/lxc/&amp;lt;container-name&amp;gt;/lib/modules\tnone\tbind\t0\t0&amp;quot; | sudo tee --append /var/lib/lxc/&amp;lt;container-name&amp;gt;/fstab &amp;gt; /dev/null
+# загрузите модуль ядра
+$ sudo modprobe ip6table_filter
+# и добавьте его на автоматическую загрузку
+$ echo &amp;#39;ip6table_filter&amp;#39; | sudo tee --append /etc/modules &amp;gt; /dev/null
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Фух, это&amp;nbsp;всё.&lt;/p&gt;
 &lt;h1&gt;Что&amp;nbsp;дальше?&lt;/h1&gt;
-&lt;p&gt;В этом посте я не написал о следующих интересных вещах в &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; (хорошие темы для будующих постов про &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, некоторые технологии мы уже используем в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;):&lt;/p&gt;
+&lt;p&gt;В этом посте я не написал о следующих интересных вещах в &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt; (хорошие темы для бушующих постов про &lt;em&gt;&lt;span class="caps"&gt;LXC&lt;/span&gt;&lt;/em&gt;, некоторые технологии мы уже используем в &lt;a href="http://conjur.net"&gt;Conjur&lt;/a&gt;):&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Running nested&amp;nbsp;containers&lt;/li&gt;
 &lt;li&gt;Running Docker containers inside &lt;span class="caps"&gt;LXC&lt;/span&gt;&amp;nbsp;containers&lt;/li&gt;
@@ -289,7 +348,7 @@ $ sudo lxc-destroy -n ubuntu-03 -f
 &lt;p&gt;Смотри man page &lt;code&gt;bridge(8)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:bridges" rev="footnote" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn:rootfs"&gt;
-&lt;p&gt;Если вы не ипользуете &lt;em&gt;&lt;span class="caps"&gt;LVM&lt;/span&gt;&lt;/em&gt;, &lt;em&gt;Btrfs&lt;/em&gt; или &lt;em&gt;Zfs&lt;/em&gt; для хранения данных контейнера&amp;#160;&lt;a class="footnote-backref" href="#fnref:rootfs" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Если вы не используете &lt;em&gt;&lt;span class="caps"&gt;LVM&lt;/span&gt;&lt;/em&gt;, &lt;em&gt;Btrfs&lt;/em&gt; или &lt;em&gt;Zfs&lt;/em&gt; для хранения данных контейнера&amp;#160;&lt;a class="footnote-backref" href="#fnref:rootfs" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn:config"&gt;
 &lt;p&gt;Смотрите man pages &lt;code&gt;lxc.conf(5)&lt;/code&gt;, &lt;code&gt;lxc.container.conf(5)&lt;/code&gt; и &lt;code&gt;lxc.system.conf(5)&lt;/code&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:config" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
