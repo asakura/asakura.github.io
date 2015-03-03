@@ -12,6 +12,9 @@
 </head>
 
 <body id="index" class="home">
+<a href="http://github.com/asakura">
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
+</a>
         <header id="banner" class="body">
                 <h1><a href="http://asakura.github.io/">Asakura's drawers table </a></h1>
                 <nav><ul>
@@ -28,7 +31,7 @@
 
     <div class="entry-content">
 <footer class="post-info">
-        <abbr class="published" title="2015-02-23T10:20:00+01:00">
+        <abbr class="published" title="2015-02-23T10:20:00+03:00">
                 Published: Пан 23 Люты 2015
         </abbr>
 
@@ -170,7 +173,7 @@ lxcbr0    Link encap:Ethernet  HWaddr e2:0a:c8:95:d0:b3
 
 <p>В первый раз это затянется минут на пять, так как <code>lxc-create</code> запустит шаблон <code>ubuntu</code>, который соберёт новый контейнер и скопирует его в папку <code>/var/lib/lxc/ubuntu-01</code>. <em><span class="caps">LXC</span></em> обычно использует <code>/var/lib/lxc/</code> для хранения контейнеров, <code>/var/cache/lxc/</code> использует как место для кеша (главным образом используется программой <code>lxc-create</code> и&nbsp;шаблонами).</p>
 <p>Давайте скорее его запустим (логин и пароль <code>ubuntu</code>):</p>
-<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-start -n ubuntu-01
+<div class="highlight"><pre><span class="nv">$ </span>sudo lxc-start -F -n ubuntu-01
 </pre></div>
 
 
@@ -180,7 +183,7 @@ lxcbr0    Link encap:Ethernet  HWaddr e2:0a:c8:95:d0:b3
 <li>выполнить команду выключения в контейнере: <code>sudo shutdown -h now</code></li>
 <li>закрыть окно&nbsp;консоли.</li>
 </ol>
-<p>Это случилось потому что вы запустили контейнер без использования ключа <code>-d</code>. <em><span class="caps">LXC</span></em> не позволяет отсоединится (detach) от контейнера, если он был запущен не в&nbsp;фоне.</p>
+<p>Это случилось потому что вы запустили контейнер без использования ключа <code>-d</code> (а был использован ключ <code>-F</code>). <em><span class="caps">LXC</span></em> не позволяет отсоединится (detach) от контейнера, если он был запущен не в&nbsp;фоне.</p>
 <h2>Шаблоны</h2>
 <p><em>Шаблоны</em> &#8212; это просто исполняемый файл, написанный на bash (но не обязательно), создающий <em>rootfs</em> для контейнера, остальную работу по созданию контейнера берет на себя <code>lxc-create</code>. Имейте ввиду, что для работы многих шаблонов нужны дополнительные программы, о которых было сказано в начале статьи. Шаблоны можно найти в <code>/usr/share/lxc/templates</code>.</p>
 <p>На данный момент существуют и поддерживаются <em>шаблоны</em> для <em>Alpine Linux</em>, <em><span class="caps">ALT</span> Linux</em>, <em>Arch Linux</em>, <em>CentOS</em>, <em>CirrOS</em>, <em>Debian</em>, <em>Fedora</em>, <em>Gentoo</em>, <em>OpenMandriva</em>, <em>OpenSUSE</em>, <em>Oracle Linux</em>, <em>Plamo Linux</em>, <em>Ubuntu</em>. Среди шаблонов можно также найти несколько&nbsp;необычных:</p>
@@ -397,6 +400,21 @@ $ echo &#39;ip6table_filter&#39; | sudo tee --append /etc/modules &gt; /dev/null
 </ol>
 </div>
     </div><!-- /.entry-content -->
+    <div class="comments">
+      <h2>Comments !</h2>
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'asakura.github.io';
+        var disqus_identifier = 'getting-started-with-lxc.html';
+        var disqus_url = 'http://asakura.github.io/getting-started-with-lxc.html';
+        (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//asakura.github.io.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the comments.</noscript>
+    </div>
 
   </article>
 </section>
@@ -428,5 +446,14 @@ $ echo &#39;ip6table_filter&#39; | sudo tee --append /etc/modules &gt; /dev/null
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
     </script>
+<script type="text/javascript">
+    var disqus_shortname = 'asakura.github.io';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
 </body>
 </html>
